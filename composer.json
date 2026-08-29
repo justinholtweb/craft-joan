@@ -1,0 +1,75 @@
+{
+    "name": "justinholtweb/craft-joan",
+    "description": "A complete inventory of your content model — every field, entry type, Matrix block and field layout, what actually uses it, and what nothing does.",
+    "type": "craft-plugin",
+    "version": "5.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "joan",
+        "inventory",
+        "fields",
+        "field usage",
+        "entry types",
+        "matrix",
+        "field layouts",
+        "audit",
+        "unused fields",
+        "content model"
+    ],
+    "license": "proprietary",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Justin Holt",
+            "homepage": "https://justinholt.com"
+        }
+    ],
+    "support": {
+        "docs": "https://craft-joan.com/docs",
+        "source": "https://github.com/justinholtweb/craft-joan",
+        "issues": "https://github.com/justinholtweb/craft-joan/issues"
+    },
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "craftcms/cms": "^5.3.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main",
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "justinholtweb\\joan\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "justinholtweb\\joan\\tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true,
+            "craftcms/generator": true
+        }
+    },
+    "extra": {
+        "name": "Joan",
+        "handle": "joan",
+        "developer": "Justin Holt",
+        "developerUrl": "https://justinholt.com",
+        "documentationUrl": "https://craft-joan.com/docs",
+        "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-joan/main/CHANGELOG.md",
+        "class": "justinholtweb\\joan\\Plugin"
+    }
+}

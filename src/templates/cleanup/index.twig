@@ -1,0 +1,193 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "Cleanup"|t('joan') %}
+{% set selectedSubnavItem = 'cleanup' %}
+
+{% macro fieldTable(fields) %}
+    <table class="data fullwidth joan-table">
+        <thead>
+            <tr>
+                <th>{{ "Field"|t('joan') }}</th>
+                <th>{{ "Type"|t('joan') }}</th>
+                <th class="joan-num">{{ "Layouts"|t('joan') }}</th>
+                <th class="joan-num">{{ "Elements"|t('joan') }}</th>
+                <th class="joan-num">{{ "Code"|t('joan') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for field in fields %}
+                <tr>
+                    <td>
+                        <a href="{{ url('joan/fields/' ~ field.uid) }}">{{ field.name }}</a>
+                        <div class="joan-sub joan-mono">{{ field.handle }}</div>
+                    </td>
+                    <td>{{ field.typeName }}</td>
+                    <td class="joan-num">{{ field.layoutCount }}</td>
+                    <td class="joan-num">{{ field.wasCounted() ? field.usedElements|number_format : '—' }}</td>
+                    <td class="joan-num">{{ field.codeScanned ? field.codeRefCount : '—' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% block actionButton %}
+    <div class="flex">
+        <a class="btn" href="{{ actionUrl('joan/export/download', { report: 'cleanup', format: 'csv' }) }}">{{ "Export CSV"|t('joan') }}</a>
+        {% include "joan/_partials/refresh" %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% import _self as tables %}
+    {% include "joan/_partials/style" %}
+    {% include "joan/_partials/scannotes" %}
+
+    <p class="joan-note">
+        {{ "Joan deletes nothing. Deleting a field deletes its content for every element, permanently, and that decision belongs on Craft’s own settings screen — with this list open next to it. Take a database backup first: {command}."|t('joan', { command: 'php craft db/backup' }) }}
+    </p>
+
+    {% set nothing = unusedFields is empty
+        and codeOnlyFields is empty
+        and emptyFields is empty
+        and strandedFields is empty
+        and unusedEntryTypes is empty
+        and strandedEntryTypes is empty
+        and emptyEntryTypes is empty
+        and unusedBlockTypes is empty
+        and unattributedLayouts is empty
+        and strandedKeys is empty %}
+
+    {% if nothing %}
+        <p>{{ "Nothing to clean up. Every field and entry type is attached to something, and every stored value belongs to a field that still exists."|t('joan') }}</p>
+    {% endif %}
+
+    {% if unusedFields is not empty %}
+        <h2>{{ "Fields nothing uses"|t('joan') }}</h2>
+        <p class="joan-sub">{{ "In no field layout, holding no content, and named nowhere in the scanned code."|t('joan') }}</p>
+        {{ tables.fieldTable(unusedFields) }}
+    {% endif %}
+
+    {% if strandedFields is not empty %}
+        <h2 class="joan-section-heading">{{ "Fields with stranded content"|t('joan') }}</h2>
+        <p class="joan-sub">{{ "Removed from every field layout, but elements still hold values. Nothing renders them and no editor can reach them — and deleting the field destroys them."|t('joan') }}</p>
+        {{ tables.fieldTable(strandedFields) }}
+    {% endif %}
+
+    {% if codeOnlyFields is not empty %}
+        <h2 class="joan-section-heading">{{ "Fields only the code remembers"|t('joan') }}</h2>
+        <p class="joan-sub">{{ "In no field layout and holding no content, but the codebase still names the handle. Usually a template that was never cleaned up — occasionally a field populated entirely by a module."|t('joan') }}</p>
+        {{ tables.fieldTable(codeOnlyFields) }}
+    {% endif %}
+
+    {% if emptyFields is not empty %}
+        <h2 class="joan-section-heading">{{ "Fields nobody fills in"|t('joan') }}</h2>
+        <p class="joan-sub">{{ "On a field layout, offered to editors, and never once given a value. Either it isn’t needed or nobody knows what it’s for."|t('joan') }}</p>
+        {{ tables.fieldTable(emptyFields) }}
+    {% endif %}
+
+    {% if unusedEntryTypes is not empty or strandedEntryTypes is not empty or emptyEntryTypes is not empty %}
+        <h2 class="joan-section-heading">{{ "Entry types"|t('joan') }}</h2>
+        <table class="data fullwidth joan-table">
+            <thead>
+                <tr>
+                    <th>{{ "Entry type"|t('joan') }}</th>
+                    <th class="joan-num">{{ "Entries"|t('joan') }}</th>
+                    <th>{{ "Why it’s here"|t('joan') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in unusedEntryTypes %}
+                    <tr>
+                        <td><a href="{{ url('joan/entry-types/' ~ report.uid) }}">{{ report.name }}</a></td>
+                        <td class="joan-num">0</td>
+                        <td>{{ "Attached to no section and nested in no field."|t('joan') }}</td>
+                    </tr>
+                {% endfor %}
+                {% for report in strandedEntryTypes %}
+                    <tr>
+                        <td><a href="{{ url('joan/entry-types/' ~ report.uid) }}">{{ report.name }}</a></td>
+                        <td class="joan-num">{{ report.totalEntries|number_format }}</td>
+                        <td>{{ "Attached to nothing, but entries of this type still exist."|t('joan') }}</td>
+                    </tr>
+                {% endfor %}
+                {% for report in emptyEntryTypes %}
+                    <tr>
+                        <td><a href="{{ url('joan/entry-types/' ~ report.uid) }}">{{ report.name }}</a></td>
+                        <td class="joan-num">0</td>
+                        <td>{{ "Attached to something, but no entry has ever been created with it."|t('joan') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if unusedBlockTypes is not empty %}
+        <h2 class="joan-section-heading">{{ "Block types nobody picks"|t('joan') }}</h2>
+        <p class="joan-sub">{{ "Allowed by a nesting field, never once used in content."|t('joan') }}</p>
+        <table class="data fullwidth joan-table">
+            <thead>
+                <tr>
+                    <th>{{ "Field"|t('joan') }}</th>
+                    <th>{{ "Block type"|t('joan') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in unusedBlockTypes %}
+                    <tr>
+                        <td>{{ row.field.name }}</td>
+                        <td>
+                            {% if row.entryType.url %}<a href="{{ row.entryType.url }}">{{ row.entryType.name }}</a>{% else %}{{ row.entryType.name }}{% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if unattributedLayouts is not empty %}
+        <h2 class="joan-section-heading">{{ "Field layouts nothing claims"|t('joan') }}</h2>
+        <p class="joan-sub">{{ "Rows in the field layout table that no element type, and nothing else Joan can ask, admits to owning. Usually left behind by an uninstalled plugin."|t('joan') }}</p>
+        <table class="data fullwidth joan-table">
+            <thead>
+                <tr>
+                    <th>{{ "Layout"|t('joan') }}</th>
+                    <th>{{ "Declared type"|t('joan') }}</th>
+                    <th class="joan-num">{{ "Fields"|t('joan') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for layout in unattributedLayouts %}
+                    <tr>
+                        <td class="joan-mono">#{{ layout.id ?? '?' }}</td>
+                        <td class="joan-mono">{{ layout.typeName ?? '—' }}</td>
+                        <td class="joan-num">{{ layout.fieldCount }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if strandedKeys is not empty %}
+        <h2 class="joan-section-heading">{{ "Content with no field"|t('joan') }}</h2>
+        <p class="joan-sub">
+            {{ "Craft 5 keys stored content by field layout element, not by field. Take a field out of a layout and its values stay behind under a key nothing will ever read again. The layout element that knew which field this was is gone, so the key is as far as the trail goes."|t('joan') }}
+        </p>
+        <table class="data fullwidth joan-table">
+            <thead>
+                <tr>
+                    <th>{{ "Content key"|t('joan') }}</th>
+                    <th class="joan-num">{{ "Rows"|t('joan') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key, rows in strandedKeys %}
+                    <tr>
+                        <td class="joan-mono">{{ key }}</td>
+                        <td class="joan-num">{{ rows|number_format }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

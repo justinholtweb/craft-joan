@@ -1,0 +1,98 @@
+{% extends "_layouts/cp" %}
+
+{% set title = report.name %}
+{% set selectedSubnavItem = 'entry-types' %}
+{% set crumbs = [
+    { label: "Joan"|t('joan'), url: url('joan') },
+    { label: "Entry types"|t('joan'), url: url('joan/entry-types') },
+] %}
+
+{% block actionButton %}
+    {% if report.cpEditUrl %}
+        <a class="btn" href="{{ report.cpEditUrl }}">{{ "Edit entry type"|t('joan') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% include "joan/_partials/style" %}
+
+    <div class="joan-cards">
+        <div class="joan-card">
+            <h4>{{ "Verdict"|t('joan') }}</h4>
+            <div style="margin: 6px 0;">{% include "joan/_partials/verdict" with { verdict: report.verdict } only %}</div>
+            <div class="joan-sub joan-mono">{{ report.handle }}</div>
+        </div>
+        <div class="joan-card">
+            <h4>{{ "Entries"|t('joan') }}</h4>
+            <div class="joan-figure">{{ report.totalEntries|number_format }}</div>
+            <div class="joan-sub">
+                {{ "{top} top-level, {nested} nested"|t('joan', {
+                    top: report.topLevelEntries|number_format,
+                    nested: report.nestedEntries|number_format,
+                }) }}
+            </div>
+        </div>
+        <div class="joan-card">
+            <h4>{{ "Fields"|t('joan') }}</h4>
+            <div class="joan-figure">{{ report.fieldCount }}</div>
+            <div class="joan-sub">{{ report.hasTitleField ? "plus a title"|t('joan') : "no title field"|t('joan') }}</div>
+        </div>
+    </div>
+
+    <h2>{{ "Used by"|t('joan') }}</h2>
+
+    {% if report.sections is empty and report.nestingFields is empty %}
+        <p class="joan-note is-warning">
+            {{ "No section uses this entry type and no field nests it. If entries of this type still exist, they’re only reachable by ID."|t('joan') }}
+        </p>
+    {% else %}
+        <ul>
+            {% for section in report.sections %}
+                <li>{{ "Section"|t('joan') }}: <a href="{{ section.url }}">{{ section.name }}</a></li>
+            {% endfor %}
+            {% for field in report.nestingFields %}
+                <li>
+                    {{ "Nested in the {type} field"|t('joan', { type: field.type }) }}
+                    <strong>{{ field.name }}</strong>
+                    {% if report.entriesByField[field.name] is defined %}
+                        <span class="joan-sub">
+                            {{ "{n} block(s)"|t('joan', { n: report.entriesByField[field.name]|number_format }) }}
+                        </span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h2 class="joan-section-heading">{{ "Fields on this entry type"|t('joan') }}</h2>
+
+    {% if fields is empty %}
+        <p>{{ "No custom fields."|t('joan') }}</p>
+    {% else %}
+        <table class="data fullwidth joan-table">
+            <thead>
+                <tr>
+                    <th>{{ "Field"|t('joan') }}</th>
+                    <th>{{ "Type"|t('joan') }}</th>
+                    <th>{{ "Tab"|t('joan') }}</th>
+                    <th class="joan-num">{{ "Elements"|t('joan') }}</th>
+                    <th>{{ "Verdict"|t('joan') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in fields %}
+                    <tr>
+                        <td>
+                            <a href="{{ url('joan/fields/' ~ row.field.uid) }}">{{ row.instance.label ?? row.field.name }}</a>
+                            <div class="joan-sub joan-mono">{{ row.instance.handle }}</div>
+                        </td>
+                        <td>{{ row.field.typeName }}</td>
+                        <td>{{ row.instance.tab ?? '—' }}</td>
+                        <td class="joan-num">{{ row.field.wasCounted() ? row.field.usedElements|number_format : '—' }}</td>
+                        <td>{% include "joan/_partials/verdict" with { verdict: row.field.verdict } only %}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

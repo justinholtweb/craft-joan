@@ -1,0 +1,113 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "Fields"|t('joan') %}
+{% set selectedSubnavItem = 'fields' %}
+
+{% block actionButton %}
+    <div class="flex">
+        <a class="btn" href="{{ actionUrl('joan/export/download', { report: 'fields', format: 'csv' }) }}">{{ "Export CSV"|t('joan') }}</a>
+        {% include "joan/_partials/refresh" %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% include "joan/_partials/style" %}
+    {% include "joan/_partials/scannotes" %}
+
+    <form method="get" class="joan-filters">
+        <div class="field">
+            <div class="heading"><label>{{ "Search"|t('joan') }}</label></div>
+            <div class="input"><input type="text" class="text" name="search" value="{{ search }}" placeholder="{{ 'name, handle or type'|t('joan') }}"></div>
+        </div>
+        <div class="field">
+            <div class="heading"><label>{{ "Verdict"|t('joan') }}</label></div>
+            <div class="input">
+                <div class="select">
+                    <select name="verdict">
+                        <option value="">{{ "Any"|t('joan') }}</option>
+                        {% for value, label in {
+                            inUse: 'In use'|t('joan'),
+                            empty: 'Never filled in'|t('joan'),
+                            stranded: 'Stranded'|t('joan'),
+                            codeOnly: 'Code only'|t('joan'),
+                            unused: 'Unused'|t('joan'),
+                            uncountable: 'Not counted'|t('joan'),
+                        } %}
+                            <option value="{{ value }}"{{ verdict == value ? ' selected' }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <div class="heading"><label>{{ "Field type"|t('joan') }}</label></div>
+            <div class="input">
+                <div class="select">
+                    <select name="type">
+                        <option value="">{{ "Any"|t('joan') }}</option>
+                        {% for class, label in types %}
+                            <option value="{{ class }}"{{ type == class ? ' selected' }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <button type="submit" class="btn submit">{{ "Filter"|t('joan') }}</button>
+            <a class="btn" href="{{ url('joan/fields') }}">{{ "Reset"|t('joan') }}</a>
+        </div>
+    </form>
+
+    <p class="joan-sub">
+        {{ "Showing {shown} of {total} fields."|t('joan', { shown: fields|length, total: total }) }}
+    </p>
+
+    {% if fields is empty %}
+        <p>{{ "No fields matched."|t('joan') }}</p>
+    {% else %}
+        <table class="data fullwidth joan-table">
+            <thead>
+                <tr>
+                    <th>{{ "Field"|t('joan') }}</th>
+                    <th>{{ "Type"|t('joan') }}</th>
+                    <th class="joan-num">{{ "Layouts"|t('joan') }}</th>
+                    <th class="joan-num">{{ "Elements"|t('joan') }}</th>
+                    <th class="joan-num">{{ "Code"|t('joan') }}</th>
+                    <th>{{ "Verdict"|t('joan') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for field in fields %}
+                    <tr>
+                        <td>
+                            <a href="{{ url('joan/fields/' ~ field.uid) }}">{{ field.name }}</a>
+                            <div class="joan-sub joan-mono">{{ field.handle }}</div>
+                        </td>
+                        <td>
+                            {{ field.typeName }}
+                            {% if not field.typeExists %}
+                                <span class="error">{{ "(missing)"|t('joan') }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="joan-num">
+                            {{ field.layoutCount }}
+                            {% if field.hiddenInstances|length %}
+                                <div class="joan-sub" title="{{ 'Craft’s own “Used by” panel doesn’t list these.'|t('joan') }}">
+                                    +{{ field.hiddenInstances|length }} {{ "hidden"|t('joan') }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="joan-num">{{ field.wasCounted() ? field.usedElements|number_format : '—' }}</td>
+                        <td class="joan-num">{{ field.codeScanned ? field.codeRefCount : '—' }}</td>
+                        <td>
+                            {% include "joan/_partials/verdict" with { verdict: field.verdict } only %}
+                            {% if field.ignored %}
+                                <div class="joan-sub">{{ "ignored"|t('joan') }}</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

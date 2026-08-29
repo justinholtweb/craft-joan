@@ -1,0 +1,97 @@
+{# Inline rather than an asset bundle: it's sixty lines of CSS, and a bundle would mean
+   clearing the CP resource cache every time one of them changed. #}
+{% css %}
+    .joan-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .joan-card {
+        background: var(--gray-050, #f3f7fc);
+        border: 1px solid var(--hairline-color, rgba(51, 64, 77, 0.1));
+        border-radius: var(--large-border-radius, 8px);
+        padding: 14px 16px;
+    }
+    .joan-card h4 {
+        margin: 0 0 4px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--medium-text-color, #606d7b);
+    }
+    .joan-figure {
+        font-size: 26px;
+        line-height: 1.15;
+        font-weight: 500;
+    }
+    .joan-sub {
+        font-size: 12px;
+        color: var(--medium-text-color, #606d7b);
+    }
+    .joan-card.is-flag { background: #fff8e6; border-color: #f0c36d; }
+    .joan-card.is-bad { background: #fdeaea; border-color: #e8a5a5; }
+    .joan-verdict {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        line-height: 18px;
+        white-space: nowrap;
+        font-weight: 500;
+    }
+    .joan-verdict.inUse { background: #d7f5e9; color: #14746f; }
+    .joan-verdict.empty { background: #fdf1d3; color: #8a6116; }
+    .joan-verdict.codeOnly { background: #fdf1d3; color: #8a6116; }
+    .joan-verdict.stranded { background: #fbe0e0; color: #a51c1c; }
+    .joan-verdict.unused { background: #fbe0e0; color: #a51c1c; }
+    .joan-verdict.uncountable { background: var(--gray-100, #e3e5e8); color: #606d7b; }
+    .joan-mono {
+        font-family: var(--mono-font, 'SFMono-Regular', Consolas, monospace);
+        font-size: 12px;
+    }
+    .joan-table td, .joan-table th { vertical-align: top; }
+    .joan-table td.joan-num, .joan-table th.joan-num { text-align: right; font-variant-numeric: tabular-nums; }
+    .joan-note {
+        border-left: 3px solid var(--hairline-color, rgba(51, 64, 77, 0.15));
+        padding: 2px 0 2px 12px;
+        margin: 0 0 18px;
+        color: var(--medium-text-color, #606d7b);
+        font-size: 13px;
+    }
+    .joan-note.is-warning { border-left-color: #f0c36d; }
+    .joan-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-end;
+        margin-bottom: 18px;
+    }
+    .joan-refs {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .joan-refs li {
+        padding: 4px 0;
+        border-bottom: 1px solid var(--hairline-color, rgba(51, 64, 77, 0.08));
+    }
+    .joan-refs .joan-snippet {
+        display: block;
+        font-family: var(--mono-font, 'SFMono-Regular', Consolas, monospace);
+        font-size: 12px;
+        color: var(--medium-text-color, #606d7b);
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    .joan-weak { opacity: 0.6; }
+    .joan-bar {
+        background: var(--gray-200, #cdd8e4);
+        border-radius: 4px;
+        height: 6px;
+        overflow: hidden;
+        min-width: 90px;
+    }
+    .joan-bar span { display: block; height: 100%; background: var(--enabled-color, #27ab83); }
+    .joan-section-heading { margin-top: 28px; }
+{% endcss %}

@@ -1,0 +1,18 @@
+{# One badge, used on every screen, so a verdict means the same thing everywhere. #}
+{% set labels = {
+    inUse: 'in use'|t('joan'),
+    empty: 'empty'|t('joan'),
+    stranded: 'stranded'|t('joan'),
+    codeOnly: 'code only'|t('joan'),
+    unused: 'unused'|t('joan'),
+    uncountable: 'not counted'|t('joan'),
+} %}
+{% set tips = {
+    inUse: 'In a field layout, and elements hold values for it.'|t('joan'),
+    empty: 'In a field layout, but not one element has ever been given a value.'|t('joan'),
+    stranded: 'In no field layout — but content rows still carry values nothing can render.'|t('joan'),
+    codeOnly: 'In no field layout and holding no content, but the codebase still names it.'|t('joan'),
+    unused: 'In no field layout, holding no content, named nowhere in the code.'|t('joan'),
+    uncountable: 'Used somewhere Joan can see, but somewhere it cannot count values.'|t('joan'),
+} %}
+<span class="joan-verdict {{ verdict }}" title="{{ tips[verdict] ?? '' }}">{{ labels[verdict] ?? verdict }}</span>

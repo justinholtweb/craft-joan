@@ -1,0 +1,75 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "Matrix"|t('joan') %}
+{% set selectedSubnavItem = 'nested' %}
+
+{% block actionButton %}
+    <div class="flex">
+        <a class="btn" href="{{ actionUrl('joan/export/download', { report: 'nested', format: 'csv' }) }}">{{ "Export CSV"|t('joan') }}</a>
+        {% include "joan/_partials/refresh" %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% include "joan/_partials/style" %}
+
+    <p class="joan-note">
+        {{ "Every field that nests entries — Matrix, and CKEditor when it does. The question worth asking here is which of the block types a field allows anyone has ever actually used."|t('joan') }}
+    </p>
+
+    {% if reports is empty %}
+        <p>{{ "No field on this site nests entries."|t('joan') }}</p>
+    {% endif %}
+
+    {% for report in reports %}
+        <h2 class="joan-section-heading">
+            {% if report.cpEditUrl %}<a href="{{ report.cpEditUrl }}">{{ report.name }}</a>{% else %}{{ report.name }}{% endif %}
+            <span class="joan-sub joan-mono">{{ report.handle }}</span>
+        </h2>
+
+        <p class="joan-sub">
+            {{ "{blocks} block(s) across {owners} element(s) — {avg} per element on average. {type}."|t('joan', {
+                blocks: report.totalBlocks|number_format,
+                owners: report.owners|number_format,
+                avg: report.averageBlocksPerOwner,
+                type: report.typeName,
+            }) }}
+        </p>
+
+        {% if report.entryTypes is empty %}
+            <p class="joan-note">{{ "No entry types are configured for this field, so nothing can be nested in it."|t('joan') }}</p>
+        {% else %}
+            {% set most = report.entryTypes|first %}
+            <table class="data fullwidth joan-table">
+                <thead>
+                    <tr>
+                        <th>{{ "Block type"|t('joan') }}</th>
+                        <th class="joan-num">{{ "Blocks"|t('joan') }}</th>
+                        <th style="width: 30%;">{{ "Share"|t('joan') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entryType in report.entryTypes %}
+                        <tr>
+                            <td>
+                                {% if entryType.url %}<a href="{{ entryType.url }}">{{ entryType.name }}</a>{% else %}{{ entryType.name }}{% endif %}
+                                <div class="joan-sub joan-mono">{{ entryType.handle }}</div>
+                            </td>
+                            <td class="joan-num">
+                                {{ entryType.entries|number_format }}
+                                {% if entryType.entries == 0 %}
+                                    <div class="joan-sub">{{ "never used"|t('joan') }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="joan-bar">
+                                    <span style="width: {{ most.entries > 0 ? (entryType.entries / most.entries * 100)|round : 0 }}%;"></span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

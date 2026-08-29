@@ -1,0 +1,8 @@
+{# Craft renders this when someone lands on Settings → Plugins → Joan. The real settings
+   screen lives inside Joan's own section, so this just points at it. #}
+<p>
+    {{ "Joan’s settings live in its own section, alongside the reports they change."|t('joan') }}
+</p>
+<p>
+    <a class="btn submit" href="{{ url('joan/settings') }}">{{ "Open Joan’s settings"|t('joan') }}</a>
+</p>

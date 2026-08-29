@@ -1,0 +1,88 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "Entry types"|t('joan') %}
+{% set selectedSubnavItem = 'entry-types' %}
+
+{% block actionButton %}
+    <div class="flex">
+        <a class="btn" href="{{ actionUrl('joan/export/download', { report: 'entry-types', format: 'csv' }) }}">{{ "Export CSV"|t('joan') }}</a>
+        {% include "joan/_partials/refresh" %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% include "joan/_partials/style" %}
+
+    <p class="joan-note">
+        {{ "Craft 5 turned Matrix block types into entry types, so this list covers both. An entry type with nothing in the “Used by” column is attached to no section and nested in no field."|t('joan') }}
+    </p>
+
+    <form method="get" class="joan-filters">
+        <div class="field">
+            <div class="heading"><label>{{ "Verdict"|t('joan') }}</label></div>
+            <div class="input">
+                <div class="select">
+                    <select name="verdict" onchange="this.form.submit()">
+                        <option value="">{{ "Any"|t('joan') }}</option>
+                        {% for value, label in {
+                            inUse: 'In use'|t('joan'),
+                            empty: 'No entries yet'|t('joan'),
+                            stranded: 'Stranded'|t('joan'),
+                            unused: 'Unused'|t('joan'),
+                        } %}
+                            <option value="{{ value }}"{{ verdict == value ? ' selected' }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <p class="joan-sub">{{ "Showing {shown} of {total}."|t('joan', { shown: reports|length, total: total }) }}</p>
+
+    <table class="data fullwidth joan-table">
+        <thead>
+            <tr>
+                <th>{{ "Entry type"|t('joan') }}</th>
+                <th>{{ "Used by"|t('joan') }}</th>
+                <th class="joan-num">{{ "Fields"|t('joan') }}</th>
+                <th class="joan-num">{{ "Entries"|t('joan') }}</th>
+                <th>{{ "Verdict"|t('joan') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+                <tr>
+                    <td>
+                        <a href="{{ url('joan/entry-types/' ~ report.uid) }}">{{ report.name }}</a>
+                        <div class="joan-sub joan-mono">{{ report.handle }}</div>
+                    </td>
+                    <td>
+                        {% for section in report.sections %}
+                            <div>{{ "Section:"|t('joan') }} <a href="{{ section.url }}">{{ section.name }}</a></div>
+                        {% endfor %}
+                        {% for field in report.nestingFields %}
+                            <div class="joan-sub">{{ "Nested in"|t('joan') }} {{ field.name }} ({{ field.type }})</div>
+                        {% endfor %}
+                        {% if report.sections is empty and report.nestingFields is empty %}
+                            <span class="joan-sub">{{ "nothing"|t('joan') }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="joan-num">{{ report.fieldCount }}</td>
+                    <td class="joan-num">
+                        {{ report.totalEntries|number_format }}
+                        {% if report.nestedEntries and report.topLevelEntries %}
+                            <div class="joan-sub">
+                                {{ "{top} top-level, {nested} nested"|t('joan', {
+                                    top: report.topLevelEntries|number_format,
+                                    nested: report.nestedEntries|number_format,
+                                }) }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>{% include "joan/_partials/verdict" with { verdict: report.verdict } only %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

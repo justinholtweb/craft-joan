@@ -1,0 +1,136 @@
+{% extends "_layouts/cp" %}
+
+{% set title = "Inventory"|t('joan') %}
+{% set selectedSubnavItem = 'overview' %}
+
+{% block actionButton %}
+    {% include "joan/_partials/refresh" %}
+{% endblock %}
+
+{% block content %}
+    {% include "joan/_partials/style" %}
+    {% include "joan/_partials/scannotes" %}
+
+    <div class="joan-cards">
+        <div class="joan-card">
+            <h4>{{ "Fields"|t('joan') }}</h4>
+            <div class="joan-figure">{{ summary.fields|number_format }}</div>
+            <div class="joan-sub">
+                {{ "{n} in use"|t('joan', { n: summary.inUse|number_format }) }}
+            </div>
+        </div>
+        <div class="joan-card{{ summary.unused ? ' is-bad' }}">
+            <h4>{{ "Unused fields"|t('joan') }}</h4>
+            <div class="joan-figure">{{ summary.unused|number_format }}</div>
+            <div class="joan-sub">{{ "no layout, no content, no code"|t('joan') }}</div>
+        </div>
+        <div class="joan-card{{ summary.empty ? ' is-flag' }}">
+            <h4>{{ "Never filled in"|t('joan') }}</h4>
+            <div class="joan-figure">{{ summary.empty|number_format }}</div>
+            <div class="joan-sub">{{ "in a layout, zero values"|t('joan') }}</div>
+        </div>
+        <div class="joan-card{{ summary.stranded ? ' is-bad' }}">
+            <h4>{{ "Stranded"|t('joan') }}</h4>
+            <div class="joan-figure">{{ summary.stranded|number_format }}</div>
+            <div class="joan-sub">{{ "content with nowhere to live"|t('joan') }}</div>
+        </div>
+        <div class="joan-card">
+            <h4>{{ "Entry types"|t('joan') }}</h4>
+            <div class="joan-figure">{{ summary.entryTypes|number_format }}</div>
+            <div class="joan-sub">
+                {{ "{n} attached to nothing or empty"|t('joan', { n: summary.unusedEntryTypes|number_format }) }}
+            </div>
+        </div>
+        <div class="joan-card">
+            <h4>{{ "Field layouts"|t('joan') }}</h4>
+            <div class="joan-figure">{{ summary.layouts|number_format }}</div>
+            <div class="joan-sub">
+                {% if summary.unattributedLayouts %}
+                    {{ "{n} nothing claims"|t('joan', { n: summary.unattributedLayouts }) }}
+                {% else %}
+                    {{ "all accounted for"|t('joan') }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-nowrap" style="align-items: flex-start; gap: 24px;">
+        <div style="flex: 1 1 0; min-width: 0;">
+            <h2>{{ "Worth a look"|t('joan') }}</h2>
+
+            {% if attention is empty %}
+                <p>{{ "Nothing to report — every field is in a layout and holds content."|t('joan') }}</p>
+            {% else %}
+                <table class="data fullwidth joan-table">
+                    <thead>
+                        <tr>
+                            <th>{{ "Field"|t('joan') }}</th>
+                            <th>{{ "Verdict"|t('joan') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for field in attention %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url('joan/fields/' ~ field.uid) }}">{{ field.name }}</a>
+                                    <span class="joan-sub joan-mono">{{ field.handle }}</span>
+                                </td>
+                                <td>{% include "joan/_partials/verdict" with { verdict: field.verdict } only %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <p><a href="{{ url('joan/cleanup') }}">{{ "See everything →"|t('joan') }}</a></p>
+            {% endif %}
+        </div>
+
+        <div style="flex: 1 1 0; min-width: 0;">
+            <h2>{{ "Most used"|t('joan') }}</h2>
+
+            <table class="data fullwidth joan-table">
+                <thead>
+                    <tr>
+                        <th>{{ "Field"|t('joan') }}</th>
+                        <th class="joan-num">{{ "Elements"|t('joan') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field in busiest %}
+                        <tr>
+                            <td>
+                                <a href="{{ url('joan/fields/' ~ field.uid) }}">{{ field.name }}</a>
+                                <span class="joan-sub">{{ field.typeName }}</span>
+                            </td>
+                            <td class="joan-num">
+                                {{ field.wasCounted() ? field.usedElements|number_format : '—' }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h2 class="joan-section-heading">{{ "How this was measured"|t('joan') }}</h2>
+
+    <p class="joan-note">
+        {% if contentScan.ran %}
+            {{ "Read {rows} content rows across {elements} elements in {time}s."|t('joan', {
+                rows: contentScan.rowsScanned|number_format,
+                elements: contentScan.elementsScanned|number_format,
+                time: contentScan.runtime,
+            }) }}
+        {% else %}
+            {{ "Content was not read."|t('joan') }}
+        {% endif %}
+        {% if codeStats.ran %}
+            {{ "Read {files} files under {roots} in {time}s."|t('joan', {
+                files: codeStats.files|number_format,
+                roots: codeStats.roots|join(', '),
+                time: codeStats.runtime,
+            }) }}
+        {% else %}
+            {{ "The codebase was not read."|t('joan') }}
+        {% endif %}
+    </p>
+{% endblock %}

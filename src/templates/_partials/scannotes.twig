@@ -1,0 +1,22 @@
+{# Says out loud when a number on the screen is a guess. A count of zero from a scan that
+   never ran looks exactly like a count of zero from one that did, and only one of them is
+   a reason to delete anything. #}
+{% if not contentScan.ran %}
+    <p class="joan-note is-warning">
+        {{ "Content wasn’t counted, so element counts are unknown rather than zero. Turn on “Count content usage” in settings."|t('joan') }}
+    </p>
+{% elseif contentScan.truncated %}
+    <p class="joan-note is-warning">
+        {{ "The content scan stopped at its row limit, so element counts are lower bounds."|t('joan') }}
+    </p>
+{% endif %}
+
+{% if not codeStats.ran %}
+    <p class="joan-note is-warning">
+        {{ "The codebase wasn’t scanned, so nothing is reported as safe to delete."|t('joan') }}
+    </p>
+{% elseif codeStats.truncated %}
+    <p class="joan-note is-warning">
+        {{ "The code scan stopped at its file limit, so some references may be missing."|t('joan') }}
+    </p>
+{% endif %}

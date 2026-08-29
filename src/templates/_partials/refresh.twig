@@ -1,0 +1,10 @@
+{# The rebuild button. Joan caches the whole inventory against Craft's field version, so
+   this is only needed when *content* has moved — the field half invalidates itself. #}
+{% if canRefresh %}
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        {{ actionInput('joan/overview/refresh') }}
+        {{ redirectInput(craft.app.request.getUrl()) }}
+        <button type="submit" class="btn">{{ "Rebuild"|t('joan') }}</button>
+    </form>
+{% endif %}

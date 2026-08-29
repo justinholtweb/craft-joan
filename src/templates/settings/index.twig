@@ -1,0 +1,177 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = "Settings"|t('joan') %}
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = not readOnly %}
+
+{% block content %}
+    {% include "joan/_partials/style" %}
+
+    {% if readOnly %}
+        <p class="joan-note is-warning">
+            {{ "`allowAdminChanges` is off, so these are read-only here. Change them in a local environment and deploy the project config."|t('joan') }}
+        </p>
+    {% endif %}
+
+    {{ actionInput('joan/settings/save') }}
+    {{ redirectInput('joan/settings') }}
+
+    <h2>{{ "Measuring usage"|t('joan') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: "Count content usage"|t('joan'),
+        instructions: "Read the content table to find out how many elements actually hold a value for each field. This is one pass over `elements_sites` per rebuild. Without it Joan can still tell you where a field is used, but not whether anyone uses it."|t('joan'),
+        id: 'countContent',
+        name: 'settings[countContent]',
+        on: settings.countContent,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Count drafts and revisions"|t('joan'),
+        instructions: "Off by default, and worth leaving off. A site keeping fifty revisions per entry will report a field abandoned two years ago as thoroughly in use."|t('joan'),
+        id: 'includeDrafts',
+        name: 'settings[includeDrafts]',
+        on: settings.includeDrafts,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Include plugin fields"|t('joan'),
+        instructions: "Fields belonging to a plugin’s own context — Formie’s, for instance — rather than to your content model. They’re real fields, but they’re the plugin’s business, and a hundred of them buries the twenty that are yours."|t('joan'),
+        id: 'includePluginContexts',
+        name: 'settings[includePluginContexts]',
+        on: settings.includePluginContexts,
+        disabled: readOnly,
+    }) }}
+
+    <hr>
+
+    <h2>{{ "Scanning the codebase"|t('joan') }}</h2>
+
+    <p class="joan-sub">
+        {{ "A field can be in no layout and hold no content and still be used — by a template that populates it on save, by a module, by a migration. Joan looks, so “safe to delete” means something."|t('joan') }}
+    </p>
+
+    {{ forms.lightswitchField({
+        label: "Scan code for field handles"|t('joan'),
+        id: 'scanCode',
+        name: 'settings[scanCode]',
+        on: settings.scanCode,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textareaField({
+        label: "Paths to scan"|t('joan'),
+        instructions: "One per line, relative to the project root (or absolute). Missing directories are skipped."|t('joan'),
+        id: 'scanPaths',
+        name: 'settings[scanPaths]',
+        value: settings.scanPaths|join("\n"),
+        rows: 4,
+        class: 'code',
+        disabled: readOnly,
+    }) }}
+
+    {% if roots is not empty %}
+        <p class="joan-sub">
+            {{ "Currently resolving to: {roots}"|t('joan', { roots: roots|join(', ') }) }}
+        </p>
+    {% else %}
+        <p class="joan-note is-warning">{{ "None of those paths exist, so nothing would be scanned."|t('joan') }}</p>
+    {% endif %}
+
+    {{ forms.textareaField({
+        label: "File extensions"|t('joan'),
+        instructions: "One per line, without the dot."|t('joan'),
+        id: 'scanExtensions',
+        name: 'settings[scanExtensions]',
+        value: settings.scanExtensions|join("\n"),
+        rows: 4,
+        class: 'code',
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textareaField({
+        label: "Directories to skip"|t('joan'),
+        instructions: "Directory names never descended into, at any depth."|t('joan'),
+        id: 'scanExclude',
+        name: 'settings[scanExclude]',
+        value: settings.scanExclude|join("\n"),
+        rows: 4,
+        class: 'code',
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textField({
+        label: "Largest file to read (KB)"|t('joan'),
+        id: 'maxFileSize',
+        name: 'settings[maxFileSize]',
+        value: settings.maxFileSize,
+        size: 8,
+        type: 'number',
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textField({
+        label: "Most files to read"|t('joan'),
+        instructions: "0 for no limit."|t('joan'),
+        id: 'maxFiles',
+        name: 'settings[maxFiles]',
+        value: settings.maxFiles,
+        size: 8,
+        type: 'number',
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textField({
+        label: "References kept per field"|t('joan'),
+        instructions: "The count is always exact; this caps the list Joan shows."|t('joan'),
+        id: 'maxRefsPerField',
+        name: 'settings[maxRefsPerField]',
+        value: settings.maxRefsPerField,
+        size: 8,
+        type: 'number',
+        disabled: readOnly,
+    }) }}
+
+    <hr>
+
+    <h2>{{ "Everything else"|t('joan') }}</h2>
+
+    {{ forms.textareaField({
+        label: "Fields to leave alone"|t('joan'),
+        instructions: "One handle per line. For the field only ever populated by an import script, which every signal Joan has would otherwise call abandoned."|t('joan'),
+        id: 'ignoredFields',
+        name: 'settings[ignoredFields]',
+        value: settings.ignoredFields|join("\n"),
+        rows: 4,
+        class: 'code',
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textField({
+        label: "Cache the inventory for (seconds)"|t('joan'),
+        instructions: "Any change to a field or a field layout invalidates the inventory immediately regardless of this — Joan keys its cache on Craft’s own field version. The timer is only there to catch up with *content* changes, which don’t move it."|t('joan'),
+        id: 'cacheDuration',
+        name: 'settings[cacheDuration]',
+        value: settings.cacheDuration,
+        size: 8,
+        type: 'number',
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.selectField({
+        label: "Log level"|t('joan'),
+        id: 'logLevel',
+        name: 'settings[logLevel]',
+        value: settings.logLevel,
+        options: [
+            { label: 'Error', value: 'error' },
+            { label: 'Warning', value: 'warning' },
+            { label: 'Info', value: 'info' },
+            { label: 'Debug', value: 'debug' },
+        ],
+        disabled: readOnly,
+    }) }}
+{% endblock %}

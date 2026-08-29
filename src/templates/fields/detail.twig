@@ -1,0 +1,210 @@
+{% extends "_layouts/cp" %}
+
+{% set title = field.name %}
+{% set selectedSubnavItem = 'fields' %}
+{% set crumbs = [
+    { label: "Joan"|t('joan'), url: url('joan') },
+    { label: "Fields"|t('joan'), url: url('joan/fields') },
+] %}
+
+{% block actionButton %}
+    {% if craftEditUrl %}
+        <a class="btn" href="{{ craftEditUrl }}">{{ "Edit field"|t('joan') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% include "joan/_partials/style" %}
+
+    <div class="joan-cards">
+        <div class="joan-card">
+            <h4>{{ "Verdict"|t('joan') }}</h4>
+            <div style="margin: 6px 0;">{% include "joan/_partials/verdict" with { verdict: field.verdict } only %}</div>
+            <div class="joan-sub">{{ field.typeName }}</div>
+        </div>
+        <div class="joan-card">
+            <h4>{{ "Field layouts"|t('joan') }}</h4>
+            <div class="joan-figure">{{ field.layoutCount }}</div>
+            <div class="joan-sub">
+                {% if field.hiddenInstances|length %}
+                    {{ "{n} Craft doesn’t show"|t('joan', { n: field.hiddenInstances|length }) }}
+                {% else %}
+                    {{ "all listed by Craft"|t('joan') }}
+                {% endif %}
+            </div>
+        </div>
+        <div class="joan-card">
+            <h4>{{ "Elements with a value"|t('joan') }}</h4>
+            <div class="joan-figure">{{ field.wasCounted() ? field.usedElements|number_format : '—' }}</div>
+            <div class="joan-sub">
+                {{ field.strategies|join(', ') }}
+            </div>
+        </div>
+        <div class="joan-card">
+            <h4>{{ "Code references"|t('joan') }}</h4>
+            <div class="joan-figure">{{ field.codeScanned ? field.codeRefCount : '—' }}</div>
+            <div class="joan-sub">
+                {% if not field.codeScanned %}
+                    {{ "not scanned"|t('joan') }}
+                {% elseif ambiguous %}
+                    {{ "handle is a common word"|t('joan') }}
+                {% else %}
+                    {{ "{n} look like real uses"|t('joan', { n: field.strongCodeRefs|length }) }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if field.ignored %}
+        <p class="joan-note">{{ "This field is on Joan’s ignore list, so it’s never flagged."|t('joan') }}</p>
+    {% endif %}
+
+    {% if field.verdict == 'stranded' %}
+        <p class="joan-note is-warning">
+            {{ "This field is in no field layout, but {n} element(s) still hold values for it. Nothing renders those values and no editor can reach them — but deleting the field deletes them for good."|t('joan', { n: field.usedElements|number_format }) }}
+        </p>
+    {% elseif field.verdict == 'unused' %}
+        <p class="joan-note">
+            {{ "Nothing found: no field layout, no content, and no reference in the scanned code. Check the scan paths in settings cover everything that could use it, take a database backup, then delete it from Craft’s field settings."|t('joan') }}
+        </p>
+    {% elseif field.verdict == 'empty' %}
+        <p class="joan-note is-warning">
+            {{ "This field is on {n} field layout(s), and not one element has ever been given a value for it. Either it isn’t needed, or editors don’t know what to put in it."|t('joan', { n: field.layoutCount }) }}
+        </p>
+    {% elseif field.verdict == 'uncountable' %}
+        <p class="joan-note">
+            {{ "Joan can see where this field is used, but not how much content is in it — its values aren’t stored anywhere countable, or the only layouts using it belong to a plugin that stores its own data."|t('joan') }}
+        </p>
+    {% endif %}
+
+    <h2>{{ "Where it’s used"|t('joan') }}</h2>
+
+    {% if field.instances is empty %}
+        <p>{{ "This field isn’t on any field layout."|t('joan') }}</p>
+    {% else %}
+        <table class="data fullwidth joan-table">
+            <thead>
+                <tr>
+                    <th>{{ "Layout"|t('joan') }}</th>
+                    <th>{{ "Element type"|t('joan') }}</th>
+                    <th>{{ "Tab"|t('joan') }}</th>
+                    <th>{{ "Handle here"|t('joan') }}</th>
+                    <th>{{ "Notes"|t('joan') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for instance in field.instances %}
+                    <tr>
+                        <td>
+                            {% if instance.layout.cpEditUrl %}
+                                <a href="{{ instance.layout.cpEditUrl }}">{{ instance.layout.label }}</a>
+                            {% else %}
+                                {{ instance.layout.label }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ instance.layout.typeName ?? '—' }}
+                            {% if not instance.layout.isElementLayout %}
+                                <div class="joan-sub">{{ "not shown by Craft"|t('joan') }}</div>
+                            {% endif %}
+                        </td>
+                        <td>{{ instance.tab ?? '—' }}</td>
+                        <td class="joan-mono">
+                            {{ instance.handle }}
+                            {% if instance.handleOverridden %}
+                                <div class="joan-sub">{{ "renamed here"|t('joan') }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="joan-sub">
+                            {{ instance.required ? "required"|t('joan') }}
+                            {{ instance.conditional ? "conditional"|t('joan') }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if field.hasHandleOverrides() %}
+        <p class="joan-note is-warning">
+            {{ "A field layout renames this field’s handle, so templates may reach it as {handles}. Searching for only the field’s own handle would miss those."|t('joan', {
+                handles: field.allHandles|join(', '),
+            }) }}
+        </p>
+    {% endif %}
+
+    {% if field.byElementType is not empty or field.bySite is not empty or field.nestedByType is not empty %}
+        <h2 class="joan-section-heading">{{ "What’s in it"|t('joan') }}</h2>
+
+        <div class="flex flex-nowrap" style="align-items: flex-start; gap: 24px;">
+            {% if field.byElementType is not empty %}
+                <div style="flex: 1 1 0; min-width: 0;">
+                    <h3>{{ "By element type"|t('joan') }}</h3>
+                    <table class="data fullwidth joan-table">
+                        <tbody>
+                            {% for label, count in field.byElementType %}
+                                <tr><td>{{ label }}</td><td class="joan-num">{{ count|number_format }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+            {% if field.bySite is not empty %}
+                <div style="flex: 1 1 0; min-width: 0;">
+                    <h3>{{ "By site"|t('joan') }}</h3>
+                    <table class="data fullwidth joan-table">
+                        <tbody>
+                            {% for label, count in field.bySite %}
+                                <tr><td>{{ label }}</td><td class="joan-num">{{ count|number_format }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+            {% if field.nestedByType is not empty %}
+                <div style="flex: 1 1 0; min-width: 0;">
+                    <h3>{{ "Blocks by type"|t('joan') }}</h3>
+                    <table class="data fullwidth joan-table">
+                        <tbody>
+                            {% for label, count in field.nestedByType %}
+                                <tr><td>{{ label }}</td><td class="joan-num">{{ count|number_format }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <h2 class="joan-section-heading">{{ "In the codebase"|t('joan') }}</h2>
+
+    {% if not field.codeScanned %}
+        <p>{{ "The code scan is switched off."|t('joan') }}</p>
+    {% elseif field.codeRefs is empty %}
+        <p>{{ "Nothing in the scanned paths names this handle."|t('joan') }}</p>
+    {% else %}
+        {% if ambiguous %}
+            <p class="joan-note is-warning">
+                {{ "“{handle}” is a common word, so some of these are certain to be coincidences — a CSS class, a variable, a comment. Read them before trusting the count."|t('joan', { handle: field.handle }) }}
+            </p>
+        {% endif %}
+
+        <ul class="joan-refs">
+            {% for ref in field.codeRefs %}
+                <li class="{{ ref.isStrong() ? '' : 'joan-weak' }}">
+                    <strong class="joan-mono">{{ ref.path }}:{{ ref.line }}</strong>
+                    <span class="joan-sub">{{ ref.context }}</span>
+                    <code class="joan-snippet">{{ ref.snippet }}</code>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {% if field.codeRefTotal > field.codeRefs|length %}
+            <p class="joan-sub">
+                {{ "…and {n} more not listed."|t('joan', { n: field.codeRefTotal - field.codeRefs|length }) }}
+            </p>
+        {% endif %}
+    {% endif %}
+{% endblock %}
