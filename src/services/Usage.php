@@ -31,22 +31,34 @@ use yii\base\Component;
  * All three are counted against *canonical* elements by default. Drafts and revisions are
  * excluded, because a site keeping fifty revisions per entry will otherwise report a field
  * that was abandoned two years ago as thoroughly in use.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class Usage extends Component
 {
+    // Const Properties
+    // =========================================================================
+
     /** How many rows the content scan reads at a time. */
     private const BATCH_SIZE = 500;
 
     /** Hard ceiling on rows read in one content scan, whatever the settings say. */
     private const MAX_ROWS = 2_000_000;
 
-    private ?ContentScan $scan = null;
+    // Private Properties
+    // =========================================================================
+
+    private ?ContentScan $_scan = null;
 
     /** @var array<int, array{elements: int, targets: int}>|null Field ID => relation counts. */
-    private ?array $relationCounts = null;
+    private ?array $_relationCounts = null;
 
     /** @var array<int, array{blocks: int, owners: int, byType: array<int, int>}>|null */
-    private ?array $nestedCounts = null;
+    private ?array $_nestedCounts = null;
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Walks `elements_sites` once, tallying non-empty values per field.
@@ -55,21 +67,21 @@ class Usage extends Component
      */
     public function scanContent(array $keyToField): ContentScan
     {
-        if ($this->scan !== null) {
-            return $this->scan;
+        if ($this->_scan !== null) {
+            return $this->_scan;
         }
 
         $scan = new ContentScan();
 
-        if (!$this->settings()->countContent) {
+        if (!$this->_settings()->countContent) {
             $scan->ran = false;
-            return $this->scan = $scan;
+            return $this->_scan = $scan;
         }
 
         $started = microtime(true);
 
         try {
-            $this->runContentScan($scan, $keyToField);
+            $this->_runContentScan($scan, $keyToField);
         } catch (Throwable $e) {
             // A content scan is the expensive, fragile half of the inventory. If it fails,
             // the layout and code halves are still worth showing — but every count must
@@ -80,132 +92,7 @@ class Usage extends Component
 
         $scan->runtime = round(microtime(true) - $started, 3);
 
-        return $this->scan = $scan;
-    }
-
-    /**
-     * @param array<string, string> $keyToField
-     */
-    private function runContentScan(ContentScan $scan, array $keyToField): void
-    {
-        $maxRows = self::MAX_ROWS;
-
-        $query = (new Query())
-            ->select([
-                'elementId' => 'elements_sites.elementId',
-                'siteId' => 'elements_sites.siteId',
-                'content' => 'elements_sites.content',
-                'elementType' => 'elements.type',
-            ])
-            ->from(['elements_sites' => Table::ELEMENTS_SITES])
-            ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[elements_sites.elementId]]')
-            ->where(['not', ['elements_sites.content' => null]])
-            ->andWhere(['not', ['elements_sites.content' => ['', '[]', '{}']]])
-            // Ordering by element is what makes the per-element deduplication below possible
-            // without holding every element ID seen in memory.
-            ->orderBy(['elements_sites.elementId' => SORT_ASC, 'elements_sites.siteId' => SORT_ASC]);
-
-        $this->applyElementFilters($query);
-
-        $currentElementId = null;
-        $currentType = null;
-        /** @var array<string, true> $currentFields */
-        $currentFields = [];
-        $lastElementId = 0;
-        $lastSiteId = 0;
-
-        while (true) {
-            // Keyset pagination rather than `each()`. Both walk the table in element order,
-            // but `each()` pages with OFFSET, and OFFSET 400000 makes the database count
-            // 400,000 rows it has already given us before it hands over the next 500.
-            $batch = (clone $query)
-                ->andWhere([
-                    'or',
-                    ['>', 'elements_sites.elementId', $lastElementId],
-                    [
-                        'and',
-                        ['elements_sites.elementId' => $lastElementId],
-                        ['>', 'elements_sites.siteId', $lastSiteId],
-                    ],
-                ])
-                ->limit(self::BATCH_SIZE)
-                ->all();
-
-            if ($batch === []) {
-                break;
-            }
-
-            foreach ($batch as $row) {
-                $elementId = (int)$row['elementId'];
-                $siteId = (int)$row['siteId'];
-                $lastElementId = $elementId;
-                $lastSiteId = $siteId;
-                $scan->rowsScanned++;
-
-                if ($elementId !== $currentElementId) {
-                    // An element's site rows are adjacent in this ordering, so the running
-                    // set can be closed out the moment the ID changes — which is what keeps
-                    // this a constant-memory scan rather than one that holds every element
-                    // ID it has seen.
-                    $this->flushElement($scan, $currentType, $currentFields);
-                    $currentElementId = $elementId;
-                    $currentType = (string)$row['elementType'];
-                    $currentFields = [];
-                    $scan->elementsScanned++;
-                }
-
-                $decoded = $this->decode($row['content']);
-
-                if ($decoded === null) {
-                    continue;
-                }
-
-                $rowFields = [];
-
-                foreach ($decoded as $key => $value) {
-                    if ($this->isEmpty($value)) {
-                        continue;
-                    }
-
-                    $fieldUid = $keyToField[$key] ?? null;
-
-                    if ($fieldUid === null) {
-                        $scan->strandedKeys[$key] = ($scan->strandedKeys[$key] ?? 0) + 1;
-                        continue;
-                    }
-
-                    $rowFields[$fieldUid] = true;
-                    $currentFields[$fieldUid] = true;
-                }
-
-                foreach (array_keys($rowFields) as $fieldUid) {
-                    $scan->byFieldAndSite[$fieldUid][$siteId] = ($scan->byFieldAndSite[$fieldUid][$siteId] ?? 0) + 1;
-                }
-            }
-
-            if ($scan->rowsScanned >= $maxRows) {
-                $scan->truncated = true;
-                break;
-            }
-        }
-
-        $this->flushElement($scan, $currentType, $currentFields);
-
-        arsort($scan->strandedKeys);
-    }
-
-    /**
-     * @param array<string, true> $fields
-     */
-    private function flushElement(ContentScan $scan, ?string $elementType, array $fields): void
-    {
-        foreach (array_keys($fields) as $fieldUid) {
-            $scan->countsByField[$fieldUid] = ($scan->countsByField[$fieldUid] ?? 0) + 1;
-
-            if ($elementType !== null) {
-                $scan->byFieldAndType[$fieldUid][$elementType] = ($scan->byFieldAndType[$fieldUid][$elementType] ?? 0) + 1;
-            }
-        }
+        return $this->_scan = $scan;
     }
 
     /**
@@ -215,8 +102,8 @@ class Usage extends Component
      */
     public function relationCounts(): array
     {
-        if ($this->relationCounts !== null) {
-            return $this->relationCounts;
+        if ($this->_relationCounts !== null) {
+            return $this->_relationCounts;
         }
 
         $counts = [];
@@ -232,7 +119,7 @@ class Usage extends Component
                 ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[relations.sourceId]]')
                 ->groupBy(['relations.fieldId']);
 
-            $this->applyElementFilters($query);
+            $this->_applyElementFilters($query);
 
             foreach ($query->all() as $row) {
                 $counts[(int)$row['fieldId']] = [
@@ -244,7 +131,7 @@ class Usage extends Component
             Craft::error('Relation count failed: ' . $e->getMessage(), Plugin::LOG_CATEGORY);
         }
 
-        return $this->relationCounts = $counts;
+        return $this->_relationCounts = $counts;
     }
 
     /**
@@ -254,8 +141,8 @@ class Usage extends Component
      */
     public function nestedCounts(): array
     {
-        if ($this->nestedCounts !== null) {
-            return $this->nestedCounts;
+        if ($this->_nestedCounts !== null) {
+            return $this->_nestedCounts;
         }
 
         $counts = [];
@@ -273,7 +160,7 @@ class Usage extends Component
                 ->where(['not', ['entries.fieldId' => null]])
                 ->groupBy(['entries.fieldId', 'entries.typeId']);
 
-            $this->applyElementFilters($query);
+            $this->_applyElementFilters($query);
 
             foreach ($query->all() as $row) {
                 $fieldId = (int)$row['fieldId'];
@@ -286,7 +173,7 @@ class Usage extends Component
                 $counts[$fieldId]['owners'] = max($counts[$fieldId]['owners'], (int)$row['owners']);
             }
 
-            foreach ($this->nestedOwnerCounts() as $fieldId => $owners) {
+            foreach ($this->_nestedOwnerCounts() as $fieldId => $owners) {
                 if (isset($counts[$fieldId])) {
                     $counts[$fieldId]['owners'] = $owners;
                 }
@@ -295,7 +182,7 @@ class Usage extends Component
             Craft::error('Nested element count failed: ' . $e->getMessage(), Plugin::LOG_CATEGORY);
         }
 
-        return $this->nestedCounts = $counts;
+        return $this->_nestedCounts = $counts;
     }
 
     /**
@@ -318,7 +205,7 @@ class Usage extends Component
                 ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[entries.id]]')
                 ->groupBy(['entries.typeId', 'entries.fieldId']);
 
-            $this->applyElementFilters($query);
+            $this->_applyElementFilters($query);
 
             foreach ($query->all() as $row) {
                 $typeId = (int)$row['typeId'];
@@ -360,7 +247,7 @@ class Usage extends Component
                 ->where(['not', ['elements.fieldLayoutId' => null]])
                 ->groupBy(['elements.fieldLayoutId']);
 
-            $this->applyElementFilters($query);
+            $this->_applyElementFilters($query);
 
             foreach ($query->all() as $row) {
                 $counts[(int)$row['fieldLayoutId']] = (int)$row['total'];
@@ -377,15 +264,149 @@ class Usage extends Component
      */
     public function reset(): void
     {
-        $this->scan = null;
-        $this->relationCounts = null;
-        $this->nestedCounts = null;
+        $this->_scan = null;
+        $this->_relationCounts = null;
+        $this->_nestedCounts = null;
+    }
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Reads `elements_sites` in batches and tallies values into the scan.
+     *
+     * @param array<string, string> $keyToField
+     */
+    private function _runContentScan(ContentScan $scan, array $keyToField): void
+    {
+        $maxRows = self::MAX_ROWS;
+
+        $query = (new Query())
+            ->select([
+                'elementId' => 'elements_sites.elementId',
+                'siteId' => 'elements_sites.siteId',
+                'content' => 'elements_sites.content',
+                'elementType' => 'elements.type',
+            ])
+            ->from(['elements_sites' => Table::ELEMENTS_SITES])
+            ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[elements_sites.elementId]]')
+            ->where(['not', ['elements_sites.content' => null]])
+            ->andWhere(['not', ['elements_sites.content' => ['', '[]', '{}']]])
+            // Ordering by element is what makes the per-element deduplication below possible
+            // without holding every element ID seen in memory.
+            ->orderBy(['elements_sites.elementId' => SORT_ASC, 'elements_sites.siteId' => SORT_ASC]);
+
+        $this->_applyElementFilters($query);
+
+        $currentElementId = null;
+        $currentType = null;
+        /** @var array<string, true> $currentFields */
+        $currentFields = [];
+        $lastElementId = 0;
+        $lastSiteId = 0;
+
+        while (true) {
+            // Keyset pagination rather than `each()`. Both walk the table in element order,
+            // but `each()` pages with OFFSET, and OFFSET 400000 makes the database count
+            // 400,000 rows it has already given us before it hands over the next 500.
+            $batch = (clone $query)
+                ->andWhere([
+                    'or',
+                    ['>', 'elements_sites.elementId', $lastElementId],
+                    [
+                        'and',
+                        ['elements_sites.elementId' => $lastElementId],
+                        ['>', 'elements_sites.siteId', $lastSiteId],
+                    ],
+                ])
+                ->limit(self::BATCH_SIZE)
+                ->all();
+
+            if ($batch === []) {
+                break;
+            }
+
+            foreach ($batch as $row) {
+                $elementId = (int)$row['elementId'];
+                $siteId = (int)$row['siteId'];
+                $lastElementId = $elementId;
+                $lastSiteId = $siteId;
+                $scan->rowsScanned++;
+
+                if ($elementId !== $currentElementId) {
+                    // An element's site rows are adjacent in this ordering, so the running
+                    // set can be closed out the moment the ID changes — which is what keeps
+                    // this a constant-memory scan rather than one that holds every element
+                    // ID it has seen.
+                    $this->_flushElement($scan, $currentType, $currentFields);
+                    $currentElementId = $elementId;
+                    $currentType = (string)$row['elementType'];
+                    $currentFields = [];
+                    $scan->elementsScanned++;
+                }
+
+                $decoded = $this->_decode($row['content']);
+
+                if ($decoded === null) {
+                    continue;
+                }
+
+                $rowFields = [];
+
+                foreach ($decoded as $key => $value) {
+                    if ($this->isEmpty($value)) {
+                        continue;
+                    }
+
+                    $fieldUid = $keyToField[$key] ?? null;
+
+                    if ($fieldUid === null) {
+                        $scan->strandedKeys[$key] = ($scan->strandedKeys[$key] ?? 0) + 1;
+                        continue;
+                    }
+
+                    $rowFields[$fieldUid] = true;
+                    $currentFields[$fieldUid] = true;
+                }
+
+                foreach (array_keys($rowFields) as $fieldUid) {
+                    $scan->byFieldAndSite[$fieldUid][$siteId] = ($scan->byFieldAndSite[$fieldUid][$siteId] ?? 0) + 1;
+                }
+            }
+
+            if ($scan->rowsScanned >= $maxRows) {
+                $scan->truncated = true;
+                break;
+            }
+        }
+
+        $this->_flushElement($scan, $currentType, $currentFields);
+
+        arsort($scan->strandedKeys);
     }
 
     /**
+     * Counts one element once per field it has a value for, however many sites it's on.
+     *
+     * @param array<string, true> $fields
+     */
+    private function _flushElement(ContentScan $scan, ?string $elementType, array $fields): void
+    {
+        foreach (array_keys($fields) as $fieldUid) {
+            $scan->countsByField[$fieldUid] = ($scan->countsByField[$fieldUid] ?? 0) + 1;
+
+            if ($elementType !== null) {
+                $scan->byFieldAndType[$fieldUid][$elementType] = ($scan->byFieldAndType[$fieldUid][$elementType] ?? 0) + 1;
+            }
+        }
+    }
+
+    /**
+     * How many distinct elements own nested entries, per field.
+     *
      * @return array<int, int> Field ID => distinct owners.
      */
-    private function nestedOwnerCounts(): array
+    private function _nestedOwnerCounts(): array
     {
         $query = (new Query())
             ->select([
@@ -397,7 +418,7 @@ class Usage extends Component
             ->where(['not', ['entries.fieldId' => null]])
             ->groupBy(['entries.fieldId']);
 
-        $this->applyElementFilters($query);
+        $this->_applyElementFilters($query);
 
         $counts = [];
 
@@ -415,11 +436,11 @@ class Usage extends Component
      * thing everywhere. It has to: a report where relation counts include revisions and
      * content counts don't is worse than no report.
      */
-    private function applyElementFilters(Query $query): void
+    private function _applyElementFilters(Query $query): void
     {
         $query->andWhere(['elements.dateDeleted' => null]);
 
-        if (!$this->settings()->includeDrafts) {
+        if (!$this->_settings()->includeDrafts) {
             $query
                 ->andWhere(['elements.draftId' => null])
                 ->andWhere(['elements.revisionId' => null]);
@@ -427,9 +448,11 @@ class Usage extends Component
     }
 
     /**
+     * A content column as an array, whether the driver returned JSON or already decoded it.
+     *
      * @return array<string, mixed>|null
      */
-    private function decode(mixed $content): ?array
+    private function _decode(mixed $content): ?array
     {
         if (is_array($content)) {
             return $content;
@@ -481,7 +504,10 @@ class Usage extends Component
         return false;
     }
 
-    private function settings(): Settings
+    /**
+     * Joan's settings, typed.
+     */
+    private function _settings(): Settings
     {
         return Plugin::getInstance()->getSettings();
     }

@@ -22,7 +22,7 @@
             <div class="heading"><label for="joan-verdict">{{ "Verdict"|t('joan') }}</label></div>
             <div class="input">
                 <div class="select">
-                    <select id="joan-verdict" name="verdict" onchange="this.form.submit()">
+                    <select id="joan-verdict" name="verdict">
                         <option value="">{{ "Any"|t('joan') }}</option>
                         {% for value, label in {
                             inUse: 'In use'|t('joan'),
@@ -36,9 +36,13 @@
                 </div>
             </div>
         </div>
+        <div class="field">
+            <button type="submit" class="btn submit">{{ "Filter"|t('joan') }}</button>
+            <a class="btn" href="{{ url('joan/entry-types') }}">{{ "Reset"|t('joan') }}</a>
+        </div>
     </form>
 
-    <p class="joan-sub">{{ "Showing {shown} of {total}."|t('joan', { shown: reports|length, total: total }) }}</p>
+    <p class="light smalltext">{{ "Showing {shown} of {total}."|t('joan', { shown: reports|length, total: total }) }}</p>
 
     <table class="data fullwidth joan-table">
         <thead>
@@ -55,24 +59,24 @@
                 <tr>
                     <td>
                         <a href="{{ url('joan/entry-types/' ~ report.uid) }}">{{ report.name }}</a>
-                        <div class="joan-sub joan-mono">{{ report.handle }}</div>
+                        <div class="light smalltext code">{{ report.handle }}</div>
                     </td>
                     <td>
                         {% for section in report.sections %}
                             <div>{{ "Section:"|t('joan') }} <a href="{{ section.url }}">{{ section.name }}</a></div>
                         {% endfor %}
                         {% for field in report.nestingFields %}
-                            <div class="joan-sub">{{ "Nested in"|t('joan') }} {{ field.name }} ({{ field.type }})</div>
+                            <div class="light smalltext">{{ "Nested in"|t('joan') }} {{ field.name }} ({{ field.type }})</div>
                         {% endfor %}
                         {% if report.sections is empty and report.nestingFields is empty %}
-                            <span class="joan-sub">{{ "nothing"|t('joan') }}</span>
+                            <span class="light smalltext">{{ "nothing"|t('joan') }}</span>
                         {% endif %}
                     </td>
                     <td class="joan-num">{{ report.fieldCount }}</td>
                     <td class="joan-num">
                         {{ report.totalEntries|number_format }}
                         {% if report.nestedEntries and report.topLevelEntries %}
-                            <div class="joan-sub">
+                            <div class="light smalltext">
                                 {{ "{top} top-level, {nested} nested"|t('joan', {
                                     top: report.topLevelEntries|number_format,
                                     nested: report.nestedEntries|number_format,

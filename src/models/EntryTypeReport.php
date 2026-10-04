@@ -12,9 +12,15 @@ use craft\base\Model;
  * field — which is exactly the point. An entry type used by nothing is invisible in the
  * control panel until you go looking, and Craft 5 sites accumulate them fast, because
  * every Matrix block type a Craft 4 site ever had came across in the upgrade.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class EntryTypeReport extends Model
 {
+    // Const Properties
+    // =========================================================================
+
     /** Attached to a section, a nesting field, or both — and entries exist. */
     public const VERDICT_IN_USE = 'inUse';
 
@@ -27,16 +33,27 @@ class EntryTypeReport extends Model
     /** Attached to nothing, and no entries. Nothing would miss it. */
     public const VERDICT_UNUSED = 'unused';
 
+    // Public Properties
+    // =========================================================================
+
     public int $id = 0;
+
     public string $uid = '';
+
     public string $name = '';
+
     public string $handle = '';
+
     public ?string $icon = null;
+
     public ?string $color = null;
+
     public ?string $cpEditUrl = null;
 
     public bool $hasTitleField = true;
+
     public int $fieldCount = 0;
+
     public ?int $fieldLayoutId = null;
 
     /** @var array<int, array{id: int, name: string, handle: string, url: string|null}> Sections using it. */
@@ -56,21 +73,36 @@ class EntryTypeReport extends Model
 
     public string $verdict = self::VERDICT_UNUSED;
 
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Entries of this type, top-level and nested together.
+     */
     public function getTotalEntries(): int
     {
         return $this->topLevelEntries + $this->nestedEntries;
     }
 
+    /**
+     * How many sections and fields point at this entry type.
+     */
     public function getUsageCount(): int
     {
         return count($this->sections) + count($this->nestingFields);
     }
 
+    /**
+     * Whether this entry type only ever lives inside a Matrix-style field.
+     */
     public function isNestedOnly(): bool
     {
         return $this->sections === [] && $this->nestingFields !== [];
     }
 
+    /**
+     * Whether the verdict is one worth putting in front of someone.
+     */
     public function needsAttention(): bool
     {
         return in_array($this->verdict, [self::VERDICT_EMPTY, self::VERDICT_STRANDED, self::VERDICT_UNUSED], true);

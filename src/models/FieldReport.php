@@ -11,9 +11,15 @@ use craft\base\Model;
  * Craft's own field settings screen answers a narrower question — which *element* field
  * layouts include it — and answers "No usages" for a field that a Hyper link type, a
  * template, or ten thousand rows of orphaned content are all still relying on.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class FieldReport extends Model
 {
+    // Const Properties
+    // =========================================================================
+
     /** In a layout, and elements have values for it. */
     public const VERDICT_IN_USE = 'inUse';
 
@@ -44,9 +50,15 @@ class FieldReport extends Model
     /** The field type stores nothing Joan can count. */
     public const STRATEGY_NONE = 'none';
 
+    // Public Properties
+    // =========================================================================
+
     public int $id = 0;
+
     public string $uid = '';
+
     public string $name = '';
+
     public string $handle = '';
 
     /** @var string The field class. */
@@ -62,6 +74,7 @@ class FieldReport extends Model
     public string $context = 'global';
 
     public bool $searchable = false;
+
     public string $translationMethod = 'none';
 
     /** @var FieldInstance[] Every layout this field appears in. */
@@ -110,11 +123,20 @@ class FieldReport extends Model
 
     public string $verdict = self::VERDICT_UNUSED;
 
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Layouts the field appears in, counting every instance.
+     */
     public function getLayoutCount(): int
     {
         return count($this->instances);
     }
 
+    /**
+     * References found in code. The stored list is capped, so the total wins when it's larger.
+     */
     public function getCodeRefCount(): int
     {
         return max($this->codeRefTotal, count($this->codeRefs));
@@ -138,6 +160,8 @@ class FieldReport extends Model
     }
 
     /**
+     * Only the references that look like real uses.
+     *
      * @return CodeReference[]
      */
     public function getStrongCodeRefs(): array
@@ -165,6 +189,8 @@ class FieldReport extends Model
     }
 
     /**
+     * The instances Craft's "Used by" panel doesn't show.
+     *
      * @return FieldInstance[]
      */
     public function getHiddenInstances(): array
@@ -203,11 +229,17 @@ class FieldReport extends Model
         return array_values(array_unique(array_filter($handles)));
     }
 
+    /**
+     * Whether nothing at all points at this field and nobody has asked Joan to ignore it.
+     */
     public function isDeletable(): bool
     {
         return !$this->ignored && $this->verdict === self::VERDICT_UNUSED;
     }
 
+    /**
+     * Whether the verdict is one worth putting in front of someone.
+     */
     public function needsAttention(): bool
     {
         if ($this->ignored) {

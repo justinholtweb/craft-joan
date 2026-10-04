@@ -8,9 +8,18 @@ use yii\web\Response;
 
 /**
  * Entry types — including the ones that are only ever Matrix blocks.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class EntryTypesController extends BaseController
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Every entry type, optionally narrowed to one verdict.
+     */
     public function actionIndex(): Response
     {
         $reports = $this->plugin()->entryTypes->all();
@@ -28,6 +37,11 @@ class EntryTypesController extends BaseController
         ]));
     }
 
+    /**
+     * One entry type, with the fields on its layout.
+     *
+     * @throws NotFoundHttpException if no entry type has that UID
+     */
     public function actionDetail(string $uid): Response
     {
         $report = $this->plugin()->entryTypes->getByUid($uid);

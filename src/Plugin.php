@@ -37,9 +37,15 @@ use yii\base\Event;
  * @property-read Settings $settings
  *
  * @method Settings getSettings()
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class Plugin extends BasePlugin
 {
+    // Const Properties
+    // =========================================================================
+
     /** Read the inventory. */
     public const PERMISSION_VIEW = 'joan:view';
 
@@ -49,10 +55,19 @@ class Plugin extends BasePlugin
     /** Log category used by everything in the plugin. */
     public const LOG_CATEGORY = 'joan';
 
+    // Public Properties
+    // =========================================================================
+
     public string $schemaVersion = '1.0.0';
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
 
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     public static function config(): array
     {
         return [
@@ -67,47 +82,22 @@ class Plugin extends BasePlugin
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function init(): void
     {
         parent::init();
 
-        $this->registerLogging();
-        $this->registerCpUrlRules();
-        $this->registerPermissions();
-        $this->registerTwigVariable();
+        $this->_registerLogging();
+        $this->_registerCpUrlRules();
+        $this->_registerPermissions();
+        $this->_registerTwigVariable();
     }
 
     /**
-     * Exposes `craft.joan` to templates.
+     * @inheritdoc
      */
-    private function registerTwigVariable(): void
-    {
-        Event::on(
-            CraftVariable::class,
-            CraftVariable::EVENT_INIT,
-            function(Event $event) {
-                /** @var CraftVariable $variable */
-                $variable = $event->sender;
-                $variable->set('joan', JoanVariable::class);
-            }
-        );
-    }
-
-    private function registerLogging(): void
-    {
-        /** @var Settings $settings */
-        $settings = $this->getSettings();
-
-        Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
-            'name' => self::LOG_CATEGORY,
-            'categories' => [self::LOG_CATEGORY],
-            'level' => $settings->logLevel,
-            'logContext' => false,
-            'allowLineBreaks' => true,
-            'maxFiles' => 10,
-        ]);
-    }
-
     public function getCpNavItem(): ?array
     {
         $user = Craft::$app->getUser();
@@ -137,11 +127,28 @@ class Plugin extends BasePlugin
         return $item;
     }
 
+    /**
+     * Redirects to Joan's own settings screen rather than the stock plugin settings page.
+     */
+    public function getSettingsResponse(): mixed
+    {
+        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('joan/settings'));
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     protected function createSettingsModel(): Settings
     {
         return new Settings();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function settingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('joan/_settings', [
@@ -149,12 +156,47 @@ class Plugin extends BasePlugin
         ]);
     }
 
-    public function getSettingsResponse(): mixed
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Exposes `craft.joan` to templates.
+     */
+    private function _registerTwigVariable(): void
     {
-        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('joan/settings'));
+        Event::on(
+            CraftVariable::class,
+            CraftVariable::EVENT_INIT,
+            function(Event $event) {
+                /** @var CraftVariable $variable */
+                $variable = $event->sender;
+                $variable->set('joan', JoanVariable::class);
+            }
+        );
     }
 
-    private function registerCpUrlRules(): void
+    /**
+     * Gives Joan its own log file, at the level the settings ask for.
+     */
+    private function _registerLogging(): void
+    {
+        /** @var Settings $settings */
+        $settings = $this->getSettings();
+
+        Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
+            'name' => self::LOG_CATEGORY,
+            'categories' => [self::LOG_CATEGORY],
+            'level' => $settings->logLevel,
+            'logContext' => false,
+            'allowLineBreaks' => true,
+            'maxFiles' => 10,
+        ]);
+    }
+
+    /**
+     * Routes each control panel screen to its controller.
+     */
+    private function _registerCpUrlRules(): void
     {
         Event::on(
             UrlManager::class,
@@ -173,7 +215,10 @@ class Plugin extends BasePlugin
         );
     }
 
-    private function registerPermissions(): void
+    /**
+     * Registers the view permission and, nested under it, the one to rebuild.
+     */
+    private function _registerPermissions(): void
     {
         Event::on(
             UserPermissions::class,

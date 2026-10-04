@@ -12,10 +12,18 @@ use justinholtweb\joan\Plugin;
  *
  * Mostly for the control panel screens, but it's public API: a build script that wants to
  * fail a deploy when someone adds a field nothing uses can read the same numbers.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class JoanVariable
 {
+    // Public Methods
+    // =========================================================================
+
     /**
+     * Every field in the inventory.
+     *
      * @return FieldReport[]
      */
     public function fields(): array
@@ -23,12 +31,17 @@ class JoanVariable
         return Plugin::getInstance()->inventory->fields();
     }
 
+    /**
+     * One field's report, by handle.
+     */
     public function field(string $handle): ?FieldReport
     {
         return Plugin::getInstance()->inventory->getByHandle($handle);
     }
 
     /**
+     * Fields nothing uses, minus the ignored ones.
+     *
      * @return FieldReport[]
      */
     public function unusedFields(): array
@@ -40,6 +53,8 @@ class JoanVariable
     }
 
     /**
+     * Every entry type.
+     *
      * @return EntryTypeReport[]
      */
     public function entryTypes(): array
@@ -48,6 +63,8 @@ class JoanVariable
     }
 
     /**
+     * Every field that nests entries.
+     *
      * @return \justinholtweb\joan\models\NestedFieldReport[]
      */
     public function nestedFields(): array
@@ -56,6 +73,8 @@ class JoanVariable
     }
 
     /**
+     * Every field layout.
+     *
      * @return \justinholtweb\joan\models\LayoutRef[]
      */
     public function layouts(): array
@@ -64,6 +83,8 @@ class JoanVariable
     }
 
     /**
+     * The headline counts shown on every screen.
+     *
      * @return array<string, int|bool>
      */
     public function summary(): array

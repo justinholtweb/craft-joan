@@ -11,9 +11,15 @@ use craft\base\Model;
  * blob of config. What an editor actually needs to hear is "Blog → Article" or "Users" or
  * "Product Type: T-shirts". Working that out is the job of {@see \justinholtweb\joan\services\Layouts},
  * and this is what it hands back.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class LayoutRef extends Model
 {
+    // Const Properties
+    // =========================================================================
+
     /** Owned by an element type's provider — an entry type, a category group, a volume. */
     public const KIND_ELEMENT = 'element';
 
@@ -29,7 +35,11 @@ class LayoutRef extends Model
     /** In the `fieldlayouts` table, but nothing claims it. */
     public const KIND_UNATTRIBUTED = 'unattributed';
 
+    // Public Properties
+    // =========================================================================
+
     public ?int $id = null;
+
     public string $uid = '';
 
     /** @var string|null The layout's `type` column — usually an element class, but not always. */
@@ -53,6 +63,7 @@ class LayoutRef extends Model
     public bool $isElementLayout = true;
 
     public int $fieldCount = 0;
+
     public int $tabCount = 0;
 
     /**
@@ -60,6 +71,9 @@ class LayoutRef extends Model
      *                  for instance — naming the field that nests it.
      */
     public ?string $nestedIn = null;
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Whether content saved against this layout lives in `elements_sites.content`.

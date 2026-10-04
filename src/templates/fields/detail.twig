@@ -20,12 +20,12 @@
         <div class="joan-card">
             <h4>{{ "Verdict"|t('joan') }}</h4>
             <div style="margin: 6px 0;">{% include "joan/_partials/verdict" with { verdict: field.verdict } only %}</div>
-            <div class="joan-sub">{{ field.typeName }}</div>
+            <div class="light smalltext">{{ field.typeName }}</div>
         </div>
         <div class="joan-card">
             <h4>{{ "Field layouts"|t('joan') }}</h4>
             <div class="joan-figure">{{ field.layoutCount }}</div>
-            <div class="joan-sub">
+            <div class="light smalltext">
                 {% if field.hiddenInstances|length %}
                     {{ "{n} Craft doesn’t show"|t('joan', { n: field.hiddenInstances|length }) }}
                 {% else %}
@@ -36,14 +36,14 @@
         <div class="joan-card">
             <h4>{{ "Elements with a value"|t('joan') }}</h4>
             <div class="joan-figure">{{ field.wasCounted() ? field.usedElements|number_format : '—' }}</div>
-            <div class="joan-sub">
+            <div class="light smalltext">
                 {{ field.strategies|join(', ') }}
             </div>
         </div>
         <div class="joan-card">
             <h4>{{ "Code references"|t('joan') }}</h4>
             <div class="joan-figure">{{ field.codeScanned ? field.codeRefCount : '—' }}</div>
-            <div class="joan-sub">
+            <div class="light smalltext">
                 {% if not field.codeScanned %}
                     {{ "not scanned"|t('joan') }}
                 {% elseif ambiguous %}
@@ -60,16 +60,20 @@
     {% endif %}
 
     {% if field.verdict == 'stranded' %}
-        <p class="joan-note is-warning">
-            {{ "This field is in no field layout, but {n} element(s) still hold values for it. Nothing renders those values and no editor can reach them — but deleting the field deletes them for good."|t('joan', { n: field.usedElements|number_format }) }}
+        <p class="warning has-icon">
+            <span class="icon" aria-hidden="true"></span>
+            <span class="visually-hidden">{{ "Warning:"|t('joan') }} </span>
+            <span>{{ "This field is in no field layout, but {n} element(s) still hold values for it. Nothing renders those values and no editor can reach them — but deleting the field deletes them for good."|t('joan', { n: field.usedElements|number_format }) }}</span>
         </p>
     {% elseif field.verdict == 'unused' %}
         <p class="joan-note">
             {{ "Nothing found: no field layout, no content, and no reference in the scanned code. Check the scan paths in settings cover everything that could use it, take a database backup, then delete it from Craft’s field settings."|t('joan') }}
         </p>
     {% elseif field.verdict == 'empty' %}
-        <p class="joan-note is-warning">
-            {{ "This field is on {n} field layout(s), and not one element has ever been given a value for it. Either it isn’t needed, or editors don’t know what to put in it."|t('joan', { n: field.layoutCount }) }}
+        <p class="warning has-icon">
+            <span class="icon" aria-hidden="true"></span>
+            <span class="visually-hidden">{{ "Warning:"|t('joan') }} </span>
+            <span>{{ "This field is on {n} field layout(s), and not one element has ever been given a value for it. Either it isn’t needed, or editors don’t know what to put in it."|t('joan', { n: field.layoutCount }) }}</span>
         </p>
     {% elseif field.verdict == 'uncountable' %}
         <p class="joan-note">
@@ -105,17 +109,17 @@
                         <td>
                             {{ instance.layout.typeName ?? '—' }}
                             {% if not instance.layout.isElementLayout %}
-                                <div class="joan-sub">{{ "not shown by Craft"|t('joan') }}</div>
+                                <div class="light smalltext">{{ "not shown by Craft"|t('joan') }}</div>
                             {% endif %}
                         </td>
                         <td>{{ instance.tab ?? '—' }}</td>
-                        <td class="joan-mono">
+                        <td class="code">
                             {{ instance.handle }}
                             {% if instance.handleOverridden %}
-                                <div class="joan-sub">{{ "renamed here"|t('joan') }}</div>
+                                <div class="light smalltext">{{ "renamed here"|t('joan') }}</div>
                             {% endif %}
                         </td>
-                        <td class="joan-sub">
+                        <td class="light smalltext">
                             {{ instance.required ? "required"|t('joan') }}
                             {{ instance.conditional ? "conditional"|t('joan') }}
                         </td>
@@ -126,10 +130,12 @@
     {% endif %}
 
     {% if field.hasHandleOverrides() %}
-        <p class="joan-note is-warning">
-            {{ "A field layout renames this field’s handle, so templates may reach it as {handles}. Searching for only the field’s own handle would miss those."|t('joan', {
+        <p class="warning has-icon">
+            <span class="icon" aria-hidden="true"></span>
+            <span class="visually-hidden">{{ "Warning:"|t('joan') }} </span>
+            <span>{{ "A field layout renames this field’s handle, so templates may reach it as {handles}. Searching for only the field’s own handle would miss those."|t('joan', {
                 handles: field.allHandles|join(', '),
-            }) }}
+            }) }}</span>
         </p>
     {% endif %}
 
@@ -186,23 +192,35 @@
         <p>{{ "Nothing in the scanned paths names this handle."|t('joan') }}</p>
     {% else %}
         {% if ambiguous %}
-            <p class="joan-note is-warning">
-                {{ "“{handle}” is a common word, so some of these are certain to be coincidences — a CSS class, a variable, a comment. Read them before trusting the count."|t('joan', { handle: field.handle }) }}
+            <p class="warning has-icon">
+                <span class="icon" aria-hidden="true"></span>
+                <span class="visually-hidden">{{ "Warning:"|t('joan') }} </span>
+                <span>{{ "“{handle}” is a common word, so some of these are certain to be coincidences — a CSS class, a variable, a comment. Read them before trusting the count."|t('joan', { handle: field.handle }) }}</span>
             </p>
+        {% endif %}
+
+        {# The matching line is shown to admins only. Scanned paths include config/ by default,
+           where a handle like `password` or `apiKey` can sit next to a literal secret. #}
+        {% set showSnippets = currentUser.admin %}
+
+        {% if not showSnippets %}
+            <p class="light">{{ "Only admins can see the matching lines."|t('joan') }}</p>
         {% endif %}
 
         <ul class="joan-refs">
             {% for ref in field.codeRefs %}
                 <li class="{{ ref.isStrong() ? '' : 'joan-weak' }}">
-                    <strong class="joan-mono">{{ ref.path }}:{{ ref.line }}</strong>
-                    <span class="joan-sub">{{ ref.context }}</span>
-                    <code class="joan-snippet">{{ ref.snippet }}</code>
+                    <strong class="code">{{ ref.path }}:{{ ref.line }}</strong>
+                    <span class="light smalltext">{{ ref.context }}</span>
+                    {% if showSnippets %}
+                        <code class="joan-snippet">{{ ref.snippet }}</code>
+                    {% endif %}
                 </li>
             {% endfor %}
         </ul>
 
         {% if field.codeRefTotal > field.codeRefs|length %}
-            <p class="joan-sub">
+            <p class="light smalltext">
                 {{ "…and {n} more not listed."|t('joan', { n: field.codeRefTotal - field.codeRefs|length }) }}
             </p>
         {% endif %}

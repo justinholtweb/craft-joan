@@ -28,32 +28,43 @@ use yii\base\Component;
  * Matrix's settings. Any field type that nests entries answers that — so a third-party
  * container field is inventoried on the same terms as Matrix, without Joan knowing it
  * exists.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class EntryTypes extends Component
 {
+    // Private Properties
+    // =========================================================================
+
     /** @var EntryTypeReport[]|null Keyed by entry type UID. */
-    private ?array $reports = null;
+    private ?array $_reports = null;
 
     /** @var NestedFieldReport[]|null Keyed by field UID. */
-    private ?array $nested = null;
+    private ?array $_nested = null;
 
     /** @var array<int, string>|null */
-    private ?array $names = null;
+    private ?array $_names = null;
+
+    // Public Methods
+    // =========================================================================
 
     /**
+     * Every entry type, with where it's used and how many entries it has.
+     *
      * @return EntryTypeReport[] Keyed by entry type UID.
      */
     public function all(): array
     {
-        if ($this->reports !== null) {
-            return $this->reports;
+        if ($this->_reports !== null) {
+            return $this->_reports;
         }
 
-        $entryTypes = $this->entryTypes();
+        $entryTypes = $this->_entryTypes();
         $counts = Plugin::getInstance()->usage->entryTypeCounts();
-        $sectionsByType = $this->sectionsByEntryType();
-        $fieldsByType = $this->nestingFieldsByEntryType();
-        $fieldNames = $this->fieldNames();
+        $sectionsByType = $this->_sectionsByEntryType();
+        $fieldsByType = $this->_nestingFieldsByEntryType();
+        $fieldNames = $this->_fieldNames();
         $reports = [];
 
         foreach ($entryTypes as $entryType) {
@@ -67,10 +78,10 @@ class EntryTypes extends Component
                 'handle' => (string)$entryType->handle,
                 'icon' => $entryType->icon,
                 'color' => $entryType->color?->value,
-                'cpEditUrl' => $this->editUrl($entryType),
+                'cpEditUrl' => $this->_editUrl($entryType),
                 'hasTitleField' => (bool)$entryType->hasTitleField,
                 'fieldLayoutId' => $entryType->fieldLayoutId,
-                'fieldCount' => $this->fieldCount($entryType),
+                'fieldCount' => $this->_fieldCount($entryType),
                 'sections' => $sectionsByType[$entryType->id] ?? [],
                 'nestingFields' => $fieldsByType[$entryType->id] ?? [],
                 'topLevelEntries' => $count['topLevel'],
@@ -82,15 +93,18 @@ class EntryTypes extends Component
             }
 
             arsort($report->entriesByField);
-            $report->verdict = $this->verdict($report);
+            $report->verdict = $this->_verdict($report);
             $reports[$uid] = $report;
         }
 
         uasort($reports, fn(EntryTypeReport $a, EntryTypeReport $b) => strcasecmp($a->name, $b->name));
 
-        return $this->reports = $reports;
+        return $this->_reports = $reports;
     }
 
+    /**
+     * One entry type's report, or null if there's no such entry type.
+     */
     public function getByUid(string $uid): ?EntryTypeReport
     {
         return $this->all()[$uid] ?? null;
@@ -103,14 +117,14 @@ class EntryTypes extends Component
      */
     public function nestedFields(): array
     {
-        if ($this->nested !== null) {
-            return $this->nested;
+        if ($this->_nested !== null) {
+            return $this->_nested;
         }
 
         $counts = Plugin::getInstance()->usage->nestedCounts();
         $reports = [];
 
-        foreach ($this->containerFields() as $field) {
+        foreach ($this->_containerFields() as $field) {
             $count = $counts[$field->id] ?? ['blocks' => 0, 'owners' => 0, 'byType' => []];
 
             $report = new NestedFieldReport([
@@ -119,13 +133,13 @@ class EntryTypes extends Component
                 'name' => (string)$field->name,
                 'handle' => (string)$field->handle,
                 'type' => $field::class,
-                'typeName' => $this->displayName($field),
+                'typeName' => $this->_displayName($field),
                 'cpEditUrl' => \craft\helpers\UrlHelper::cpUrl("settings/fields/edit/$field->id"),
                 'totalBlocks' => $count['blocks'],
                 'owners' => $count['owners'],
             ]);
 
-            foreach ($this->providersFor($field) as $provider) {
+            foreach ($this->_providersFor($field) as $provider) {
                 if (!$provider instanceof EntryType) {
                     continue;
                 }
@@ -135,7 +149,7 @@ class EntryTypes extends Component
                     'name' => (string)$provider->name,
                     'handle' => (string)$provider->handle,
                     'entries' => $count['byType'][$provider->id] ?? 0,
-                    'url' => $this->editUrl($provider),
+                    'url' => $this->_editUrl($provider),
                 ];
             }
 
@@ -145,38 +159,48 @@ class EntryTypes extends Component
 
         uasort($reports, fn(NestedFieldReport $a, NestedFieldReport $b) => strcasecmp($a->name, $b->name));
 
-        return $this->nested = $reports;
+        return $this->_nested = $reports;
     }
 
     /**
+     * Every entry type's name, for labelling counts that only carry an ID.
+     *
      * @return array<int, string> Entry type ID => name.
      */
     public function names(): array
     {
-        if ($this->names !== null) {
-            return $this->names;
+        if ($this->_names !== null) {
+            return $this->_names;
         }
 
         $names = [];
 
-        foreach ($this->entryTypes() as $entryType) {
+        foreach ($this->_entryTypes() as $entryType) {
             $names[(int)$entryType->id] = (string)$entryType->name;
         }
 
-        return $this->names = $names;
-    }
-
-    public function reset(): void
-    {
-        $this->reports = null;
-        $this->nested = null;
-        $this->names = null;
+        return $this->_names = $names;
     }
 
     /**
+     * Forgets the memoized reports. Called when the inventory is invalidated.
+     */
+    public function reset(): void
+    {
+        $this->_reports = null;
+        $this->_nested = null;
+        $this->_names = null;
+    }
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * All entry types, or none if Craft can't load them.
+     *
      * @return EntryType[]
      */
-    private function entryTypes(): array
+    private function _entryTypes(): array
     {
         try {
             return Craft::$app->getEntries()->getAllEntryTypes();
@@ -188,9 +212,11 @@ class EntryTypes extends Component
     }
 
     /**
+     * The sections each entry type is attached to, by entry type ID.
+     *
      * @return array<int, array<int, array{id: int, name: string, handle: string, url: string|null}>>
      */
-    private function sectionsByEntryType(): array
+    private function _sectionsByEntryType(): array
     {
         $map = [];
 
@@ -203,7 +229,7 @@ class EntryTypes extends Component
         }
 
         foreach ($sections as $section) {
-            foreach ($this->sectionEntryTypes($section) as $entryType) {
+            foreach ($this->_sectionEntryTypes($section) as $entryType) {
                 $map[(int)$entryType->id][] = [
                     'id' => (int)$section->id,
                     'name' => (string)$section->name,
@@ -217,9 +243,11 @@ class EntryTypes extends Component
     }
 
     /**
+     * A section's entry types, or none if they can't be read.
+     *
      * @return EntryType[]
      */
-    private function sectionEntryTypes(Section $section): array
+    private function _sectionEntryTypes(Section $section): array
     {
         try {
             return $section->getEntryTypes();
@@ -229,20 +257,22 @@ class EntryTypes extends Component
     }
 
     /**
+     * The fields each entry type can be nested in, by entry type ID.
+     *
      * @return array<int, array<int, array{id: int, name: string, handle: string, type: string}>>
      */
-    private function nestingFieldsByEntryType(): array
+    private function _nestingFieldsByEntryType(): array
     {
         $map = [];
 
-        foreach ($this->containerFields() as $field) {
-            foreach ($this->providersFor($field) as $provider) {
+        foreach ($this->_containerFields() as $field) {
+            foreach ($this->_providersFor($field) as $provider) {
                 if ($provider instanceof EntryType) {
                     $map[(int)$provider->id][] = [
                         'id' => (int)$field->id,
                         'name' => (string)$field->name,
                         'handle' => (string)$field->handle,
-                        'type' => $this->displayName($field),
+                        'type' => $this->_displayName($field),
                     ];
                 }
             }
@@ -252,9 +282,11 @@ class EntryTypes extends Component
     }
 
     /**
+     * Every field that can own nested elements.
+     *
      * @return FieldInterface[]
      */
-    private function containerFields(): array
+    private function _containerFields(): array
     {
         $fields = [];
 
@@ -276,9 +308,11 @@ class EntryTypes extends Component
     }
 
     /**
+     * The layout providers a container field nests — for Matrix, its entry types.
+     *
      * @return FieldLayoutProviderInterface[]
      */
-    private function providersFor(FieldInterface $field): array
+    private function _providersFor(FieldInterface $field): array
     {
         if (!$field instanceof ElementContainerFieldInterface) {
             return [];
@@ -298,20 +332,25 @@ class EntryTypes extends Component
     }
 
     /**
+     * Container field names, by field ID.
+     *
      * @return array<int, string>
      */
-    private function fieldNames(): array
+    private function _fieldNames(): array
     {
         $names = [];
 
-        foreach ($this->containerFields() as $field) {
+        foreach ($this->_containerFields() as $field) {
             $names[(int)$field->id] = (string)$field->name;
         }
 
         return $names;
     }
 
-    private function fieldCount(EntryType $entryType): int
+    /**
+     * How many custom fields are on the entry type's layout.
+     */
+    private function _fieldCount(EntryType $entryType): int
     {
         try {
             return count($entryType->getFieldLayout()->getCustomFields());
@@ -320,7 +359,10 @@ class EntryTypes extends Component
         }
     }
 
-    private function editUrl(EntryType $entryType): ?string
+    /**
+     * Where to edit the entry type in Craft, if that can be worked out.
+     */
+    private function _editUrl(EntryType $entryType): ?string
     {
         try {
             return $entryType->getCpEditUrl();
@@ -329,7 +371,10 @@ class EntryTypes extends Component
         }
     }
 
-    private function displayName(FieldInterface $field): string
+    /**
+     * The field type's display name, or its class name if it won't give one.
+     */
+    private function _displayName(FieldInterface $field): string
     {
         try {
             return (string)$field::displayName();
@@ -338,7 +383,10 @@ class EntryTypes extends Component
         }
     }
 
-    private function verdict(EntryTypeReport $report): string
+    /**
+     * Decides the verdict from two facts: whether anything points at it, and whether it has entries.
+     */
+    private function _verdict(EntryTypeReport $report): string
     {
         $attached = $report->getUsageCount() > 0;
         $hasEntries = $report->getTotalEntries() > 0;

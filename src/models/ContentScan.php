@@ -16,9 +16,15 @@ use craft\base\Model;
  * Counts are per *field*, not per content key, and deduplicated per element — a field
  * placed twice in one layout has two keys and is still one field, and an element that
  * filled in both is still one element.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class ContentScan extends Model
 {
+    // Public Properties
+    // =========================================================================
+
     /** @var array<string, int> Field UID => elements holding a non-empty value. */
     public array $countsByField = [];
 
@@ -39,6 +45,7 @@ class ContentScan extends Model
     public array $strandedKeys = [];
 
     public int $rowsScanned = 0;
+
     public int $elementsScanned = 0;
 
     /** @var bool Whether the scan stopped before the end of the table. */
@@ -49,12 +56,20 @@ class ContentScan extends Model
 
     public float $runtime = 0.0;
 
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Elements holding a value for the field. 0 when none were found.
+     */
     public function countFor(string $fieldUid): int
     {
         return $this->countsByField[$fieldUid] ?? 0;
     }
 
     /**
+     * The field's count, broken down by element type.
+     *
      * @return array<string, int>
      */
     public function typesFor(string $fieldUid): array
@@ -63,6 +78,8 @@ class ContentScan extends Model
     }
 
     /**
+     * The field's count, broken down by site ID.
+     *
      * @return array<int, int>
      */
     public function sitesFor(string $fieldUid): array
@@ -70,6 +87,9 @@ class ContentScan extends Model
         return $this->byFieldAndSite[$fieldUid] ?? [];
     }
 
+    /**
+     * Values found under content keys that belong to no field layout.
+     */
     public function getStrandedRowCount(): int
     {
         return array_sum($this->strandedKeys);

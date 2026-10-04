@@ -1,4 +1,4 @@
-{# One badge, used on every screen, so a verdict means the same thing everywhere. #}
+{# One label, used on every screen, so a verdict means the same thing everywhere. #}
 {% set labels = {
     inUse: 'in use'|t('joan'),
     empty: 'empty'|t('joan'),
@@ -15,4 +15,19 @@
     unused: 'In no field layout, holding no content, named nowhere in the code.'|t('joan'),
     uncountable: 'Used somewhere Joan can see, but somewhere it cannot count values.'|t('joan'),
 } %}
-<span class="joan-verdict {{ verdict }}" title="{{ tips[verdict] ?? '' }}">{{ labels[verdict] ?? verdict }}</span>
+{# Craft's own status label (what Cp::statusLabelHtml() renders), so the colours follow the
+   control panel's theme. The explanation is visually hidden rather than only in `title`, which
+   keyboard and screen-reader users never reach. #}
+{% set colors = {
+    inUse: 'green',
+    empty: 'amber',
+    codeOnly: 'orange',
+    stranded: 'red',
+    unused: 'red',
+    uncountable: 'gray',
+} %}
+<span class="status-label {{ colors[verdict] ?? 'gray' }}" title="{{ tips[verdict] ?? '' }}">
+    <span class="status {{ colors[verdict] ?? 'gray' }}"></span>
+    <span class="status-label-text">{{ labels[verdict] ?? verdict }}</span>
+    {% if tips[verdict] is defined %}<span class="visually-hidden">: {{ tips[verdict] }}</span>{% endif %}
+</span>

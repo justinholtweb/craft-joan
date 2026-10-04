@@ -13,9 +13,15 @@ use yii\console\ExitCode;
  *
  *     php craft joan/entry-types
  *     php craft joan/entry-types/nested
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class EntryTypesController extends Controller
 {
+    // Public Properties
+    // =========================================================================
+
     public $defaultAction = 'index';
 
     /**
@@ -23,6 +29,12 @@ class EntryTypesController extends Controller
      */
     public bool $refresh = false;
 
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     public function options($actionID): array
     {
         return array_merge(parent::options($actionID), ['refresh']);
@@ -52,13 +64,13 @@ class EntryTypesController extends Controller
         foreach ($reports as $report) {
             $this->stdout(sprintf(
                 "%-30s %6s %8s %9s  ",
-                $this->truncate($report->handle, 30),
+                $this->_truncate($report->handle, 30),
                 $report->fieldCount,
                 number_format($report->getTotalEntries()),
                 $report->getUsageCount(),
             ));
 
-            $this->stdout($this->label($report->verdict) . "\n", $this->color($report->verdict));
+            $this->stdout($this->_label($report->verdict) . "\n", $this->_color($report->verdict));
 
             foreach ($report->sections as $section) {
                 $this->stdout("    ↳ section: {$section['name']}\n", Console::FG_GREY);
@@ -103,7 +115,7 @@ class EntryTypesController extends Controller
             foreach ($report->entryTypes as $entryType) {
                 $this->stdout(sprintf(
                     "    %-30s %s\n",
-                    $this->truncate($entryType['handle'], 30),
+                    $this->_truncate($entryType['handle'], 30),
                     number_format($entryType['entries']),
                 ), $entryType['entries'] > 0 ? Console::FG_GREEN : Console::FG_YELLOW);
             }
@@ -114,7 +126,13 @@ class EntryTypesController extends Controller
         return ExitCode::OK;
     }
 
-    private function label(string $verdict): string
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * The verdict as a person would say it.
+     */
+    private function _label(string $verdict): string
     {
         return match ($verdict) {
             EntryTypeReport::VERDICT_IN_USE => 'in use',
@@ -124,7 +142,10 @@ class EntryTypesController extends Controller
         };
     }
 
-    private function color(string $verdict): int
+    /**
+     * Green for fine, yellow for worth a look, red for the ones to deal with.
+     */
+    private function _color(string $verdict): int
     {
         return match ($verdict) {
             EntryTypeReport::VERDICT_IN_USE => Console::FG_GREEN,
@@ -133,7 +154,10 @@ class EntryTypesController extends Controller
         };
     }
 
-    private function truncate(string $value, int $length): string
+    /**
+     * Fits a value to its column, marking the cut with an ellipsis.
+     */
+    private function _truncate(string $value, int $length): string
     {
         return mb_strlen($value) > $length ? mb_substr($value, 0, $length - 1) . '…' : $value;
     }

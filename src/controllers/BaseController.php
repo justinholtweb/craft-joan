@@ -11,9 +11,18 @@ use yii\web\Response;
  *
  * Every screen is read-only, so the permission story is short: you can look, and — because
  * looking is expensive — you may or may not be allowed to make Joan look again.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 abstract class BaseController extends Controller
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     public function beforeAction($action): bool
     {
         if (!parent::beforeAction($action)) {
@@ -26,6 +35,28 @@ abstract class BaseController extends Controller
         return true;
     }
 
+    /**
+     * Rebuilds the inventory and returns to wherever the request came from.
+     */
+    public function actionRefresh(): Response
+    {
+        $this->requirePostRequest();
+        $this->requirePermission(Plugin::PERMISSION_REFRESH);
+
+        $this->plugin()->inventory->invalidate();
+        $this->plugin()->inventory->fields(true);
+
+        $this->setSuccessFlash(\Craft::t('joan', 'Inventory rebuilt.'));
+
+        return $this->redirectToPostedUrl();
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * Joan itself, typed — so the service properties resolve.
+     */
     protected function plugin(): Plugin
     {
         return Plugin::getInstance();
@@ -47,21 +78,5 @@ abstract class BaseController extends Controller
             'codeStats' => $inventory->codeStats(),
             'canRefresh' => \Craft::$app->getUser()->checkPermission(Plugin::PERMISSION_REFRESH),
         ];
-    }
-
-    /**
-     * Rebuilds the inventory and returns to wherever the request came from.
-     */
-    public function actionRefresh(): Response
-    {
-        $this->requirePostRequest();
-        $this->requirePermission(Plugin::PERMISSION_REFRESH);
-
-        $this->plugin()->inventory->invalidate();
-        $this->plugin()->inventory->fields(true);
-
-        $this->setSuccessFlash(\Craft::t('joan', 'Inventory rebuilt.'));
-
-        return $this->redirectToPostedUrl();
     }
 }

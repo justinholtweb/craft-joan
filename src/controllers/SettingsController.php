@@ -10,9 +10,18 @@ use yii\web\Response;
 
 /**
  * Joan's settings screen.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class SettingsController extends BaseController
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     public function beforeAction($action): bool
     {
         if (!parent::beforeAction($action)) {
@@ -26,6 +35,9 @@ class SettingsController extends BaseController
         return true;
     }
 
+    /**
+     * The settings screen. Read-only when admin changes are disallowed.
+     */
     public function actionIndex(): Response
     {
         return $this->renderTemplate('joan/settings/index', $this->withChrome([
@@ -36,6 +48,9 @@ class SettingsController extends BaseController
         ]));
     }
 
+    /**
+     * Saves the settings and throws away the inventory they measured.
+     */
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
@@ -51,10 +66,10 @@ class SettingsController extends BaseController
             'includeDrafts' => (bool)($posted['includeDrafts'] ?? false),
             'scanCode' => (bool)($posted['scanCode'] ?? false),
             'includePluginContexts' => (bool)($posted['includePluginContexts'] ?? false),
-            'scanPaths' => $this->lines($posted['scanPaths'] ?? ''),
-            'scanExtensions' => $this->lines($posted['scanExtensions'] ?? ''),
-            'scanExclude' => $this->lines($posted['scanExclude'] ?? ''),
-            'ignoredFields' => $this->lines($posted['ignoredFields'] ?? ''),
+            'scanPaths' => $this->_lines($posted['scanPaths'] ?? ''),
+            'scanExtensions' => $this->_lines($posted['scanExtensions'] ?? ''),
+            'scanExclude' => $this->_lines($posted['scanExclude'] ?? ''),
+            'ignoredFields' => $this->_lines($posted['ignoredFields'] ?? ''),
             'maxFileSize' => (int)($posted['maxFileSize'] ?? $settings->maxFileSize),
             'maxFiles' => (int)($posted['maxFiles'] ?? $settings->maxFiles),
             'maxRefsPerField' => (int)($posted['maxRefsPerField'] ?? $settings->maxRefsPerField),
@@ -83,12 +98,15 @@ class SettingsController extends BaseController
         return $this->redirectToPostedUrl();
     }
 
+    // Private Methods
+    // =========================================================================
+
     /**
      * Turns a textarea into a list, forgiving the blank lines everyone leaves behind.
      *
      * @return string[]
      */
-    private function lines(mixed $value): array
+    private function _lines(mixed $value): array
     {
         if (is_array($value)) {
             return array_values(array_filter(array_map('trim', $value), fn(string $line) => $line !== ''));

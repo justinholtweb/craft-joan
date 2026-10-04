@@ -14,20 +14,37 @@ use yii\base\InvalidArgumentException;
  * A content-model audit is rarely finished in the control panel. It ends up in a spreadsheet
  * a client signs off, or in a ticket, or in a diff between this month and last — so every
  * screen exports, and the CSV is flat and boring on purpose.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class Exports extends Component
 {
+    // Const Properties
+    // =========================================================================
+
     public const REPORT_FIELDS = 'fields';
+
     public const REPORT_INSTANCES = 'instances';
+
     public const REPORT_ENTRY_TYPES = 'entry-types';
+
     public const REPORT_NESTED = 'nested';
+
     public const REPORT_LAYOUTS = 'layouts';
+
     public const REPORT_CLEANUP = 'cleanup';
 
     public const FORMAT_CSV = 'csv';
+
     public const FORMAT_JSON = 'json';
 
+    // Public Methods
+    // =========================================================================
+
     /**
+     * Every report Joan can export.
+     *
      * @return string[]
      */
     public static function reports(): array
@@ -50,39 +67,53 @@ class Exports extends Component
     public function rows(string $report): array
     {
         return match ($report) {
-            self::REPORT_FIELDS => $this->fieldRows(),
-            self::REPORT_INSTANCES => $this->instanceRows(),
-            self::REPORT_ENTRY_TYPES => $this->entryTypeRows(),
-            self::REPORT_NESTED => $this->nestedRows(),
-            self::REPORT_LAYOUTS => $this->layoutRows(),
-            self::REPORT_CLEANUP => $this->cleanupRows(),
+            self::REPORT_FIELDS => $this->_fieldRows(),
+            self::REPORT_INSTANCES => $this->_instanceRows(),
+            self::REPORT_ENTRY_TYPES => $this->_entryTypeRows(),
+            self::REPORT_NESTED => $this->_nestedRows(),
+            self::REPORT_LAYOUTS => $this->_layoutRows(),
+            self::REPORT_CLEANUP => $this->_cleanupRows(),
             default => throw new InvalidArgumentException("Unknown report: $report"),
         };
     }
 
+    /**
+     * One report as CSV or pretty-printed JSON.
+     */
     public function render(string $report, string $format): string
     {
         $rows = $this->rows($report);
 
         return $format === self::FORMAT_JSON
             ? Json::encode($rows, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
-            : $this->toCsv($rows);
+            : $this->_toCsv($rows);
     }
 
+    /**
+     * A dated filename, so successive exports don't overwrite one another.
+     */
     public function filename(string $report, string $format): string
     {
         return sprintf('joan-%s-%s.%s', $report, date('Y-m-d'), $format);
     }
 
+    /**
+     * The content type to send a format with.
+     */
     public function mimeType(string $format): string
     {
         return $format === self::FORMAT_JSON ? 'application/json' : 'text/csv';
     }
 
+    // Private Methods
+    // =========================================================================
+
     /**
+     * One row per field.
+     *
      * @return array<int, array<string, mixed>>
      */
-    private function fieldRows(): array
+    private function _fieldRows(): array
     {
         $rows = [];
 
@@ -119,7 +150,7 @@ class Exports extends Component
      *
      * @return array<int, array<string, mixed>>
      */
-    private function instanceRows(): array
+    private function _instanceRows(): array
     {
         $rows = [];
 
@@ -149,9 +180,11 @@ class Exports extends Component
     }
 
     /**
+     * One row per entry type.
+     *
      * @return array<int, array<string, mixed>>
      */
-    private function entryTypeRows(): array
+    private function _entryTypeRows(): array
     {
         $rows = [];
 
@@ -173,9 +206,11 @@ class Exports extends Component
     }
 
     /**
+     * One row per entry type allowed in each nesting field.
+     *
      * @return array<int, array<string, mixed>>
      */
-    private function nestedRows(): array
+    private function _nestedRows(): array
     {
         $rows = [];
 
@@ -211,9 +246,11 @@ class Exports extends Component
     }
 
     /**
+     * One row per field layout.
+     *
      * @return array<int, array<string, mixed>>
      */
-    private function layoutRows(): array
+    private function _layoutRows(): array
     {
         $rows = [];
         $counts = Plugin::getInstance()->usage->layoutElementCounts();
@@ -239,7 +276,7 @@ class Exports extends Component
      *
      * @return array<int, array<string, mixed>>
      */
-    private function cleanupRows(): array
+    private function _cleanupRows(): array
     {
         $plugin = Plugin::getInstance();
         $rows = [];
@@ -317,9 +354,11 @@ class Exports extends Component
     }
 
     /**
+     * Rows as CSV, with the first row's keys as the header.
+     *
      * @param array<int, array<string, mixed>> $rows
      */
-    private function toCsv(array $rows): string
+    private function _toCsv(array $rows): string
     {
         if ($rows === []) {
             return '';
@@ -335,7 +374,7 @@ class Exports extends Component
 
         foreach ($rows as $row) {
             fputcsv($handle, array_map(
-                fn(mixed $value) => is_bool($value) ? ($value ? 'yes' : 'no') : $this->csvCell((string)($value ?? '')),
+                fn(mixed $value) => is_bool($value) ? ($value ? 'yes' : 'no') : $this->_csvCell((string)($value ?? '')),
                 $row,
             ), escape: '');
         }
@@ -351,7 +390,7 @@ class Exports extends Component
      * Neutralises a cell a spreadsheet would run as a formula. Field and layout names are
      * free text, and this file is opened in Excel by whoever does the cleanup.
      */
-    private function csvCell(string $value): string
+    private function _csvCell(string $value): string
     {
         return preg_match('/^[=+\-@\t\r]/', $value) ? "'" . $value : $value;
     }

@@ -9,8 +9,10 @@
     {% include "joan/_partials/style" only %}
 
     {% if readOnly %}
-        <p class="joan-note is-warning">
-            {{ "`allowAdminChanges` is off, so these are read-only here. Change them in a local environment and deploy the project config."|t('joan') }}
+        <p class="warning has-icon">
+            <span class="icon" aria-hidden="true"></span>
+            <span class="visually-hidden">{{ "Warning:"|t('joan') }} </span>
+            <span>{{ "`allowAdminChanges` is off, so these are read-only here. Change them in a local environment and deploy the project config."|t('joan') }}</span>
         </p>
     {% endif %}
 
@@ -50,7 +52,7 @@
 
     <h2>{{ "Scanning the codebase"|t('joan') }}</h2>
 
-    <p class="joan-sub">
+    <p class="light smalltext">
         {{ "A field can be in no layout and hold no content and still be used — by a template that populates it on save, by a module, by a migration. Joan looks, so “safe to delete” means something."|t('joan') }}
     </p>
 
@@ -75,11 +77,11 @@
     }) }}
 
     {% if roots is not empty %}
-        <p class="joan-sub">
+        <p class="light smalltext">
             {{ "Currently resolving to: {roots}"|t('joan', { roots: roots|join(', ') }) }}
         </p>
     {% else %}
-        <p class="joan-note is-warning">{{ "None of those paths exist, so nothing would be scanned."|t('joan') }}</p>
+        <p class="warning has-icon"><span class="icon" aria-hidden="true"></span><span class="visually-hidden">{{ "Warning:"|t('joan') }} </span><span>{{ "None of those paths exist, so nothing would be scanned."|t('joan') }}</span></p>
     {% endif %}
 
     {{ forms.textareaField({

@@ -22,7 +22,7 @@
             <div class="heading"><label for="joan-kind">{{ "Kind"|t('joan') }}</label></div>
             <div class="input">
                 <div class="select">
-                    <select id="joan-kind" name="kind" onchange="this.form.submit()">
+                    <select id="joan-kind" name="kind">
                         <option value="">{{ "Any"|t('joan') }}</option>
                         {% for value, label in {
                             element: 'Element types'|t('joan'),
@@ -35,9 +35,13 @@
                 </div>
             </div>
         </div>
+        <div class="field">
+            <button type="submit" class="btn submit">{{ "Filter"|t('joan') }}</button>
+            <a class="btn" href="{{ url('joan/layouts') }}">{{ "Reset"|t('joan') }}</a>
+        </div>
     </form>
 
-    <p class="joan-sub">{{ "Showing {shown} of {total}."|t('joan', { shown: layouts|length, total: total }) }}</p>
+    <p class="light smalltext">{{ "Showing {shown} of {total}."|t('joan', { shown: layouts|length, total: total }) }}</p>
 
     <table class="data fullwidth joan-table">
         <thead>
@@ -60,16 +64,16 @@
                             {{ layout.label }}
                         {% endif %}
                         {% if layout.kind == 'unattributed' %}
-                            <div class="joan-sub error">{{ "nothing claims this layout"|t('joan') }}</div>
+                            <div class="smalltext error">{{ "nothing claims this layout"|t('joan') }}</div>
                         {% elseif layout.kind == 'other' %}
-                            <div class="joan-sub">{{ "not an element type"|t('joan') }}</div>
+                            <div class="light smalltext">{{ "not an element type"|t('joan') }}</div>
                         {% endif %}
                     </td>
                     <td>{{ layout.typeName ?? '—' }}</td>
                     <td class="joan-num">{{ layout.tabCount }}</td>
                     <td class="joan-num">{{ layout.fieldCount }}</td>
                     <td class="joan-num">{{ layout.id and counts[layout.id] is defined ? counts[layout.id]|number_format : '—' }}</td>
-                    <td class="joan-sub">
+                    <td class="light smalltext">
                         {% for row in fieldsByLayout[layout.uid] ?? [] %}
                             <a href="{{ url('joan/fields/' ~ row.field.uid) }}">{{ row.instance.handle }}</a>{{ not loop.last ? ', ' }}
                         {% else %}

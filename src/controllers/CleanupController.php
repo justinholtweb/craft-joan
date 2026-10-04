@@ -12,9 +12,18 @@ use yii\web\Response;
  * Joan deletes nothing, and this screen doesn't offer to. Deleting a field deletes its
  * content for every element, irreversibly, and the right place for that decision is the
  * screen Craft already has for it — with this list open in the next tab.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class CleanupController extends BaseController
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Everything that looks safe to remove, or worth a second look.
+     */
     public function actionIndex(): Response
     {
         $plugin = $this->plugin();

@@ -26,9 +26,15 @@ use yii\base\Event;
  *     }
  * });
  * ```
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class DefineFieldUsageEvent extends Event
 {
+    // Public Properties
+    // =========================================================================
+
     /** @var FieldInterface The field being reported on. */
     public FieldInterface $field;
 

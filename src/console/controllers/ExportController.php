@@ -15,9 +15,15 @@ use yii\console\ExitCode;
  *
  *     php craft joan/export fields
  *     php craft joan/export instances --format=json --path=storage/joan-instances.json
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class ExportController extends Controller
 {
+    // Public Properties
+    // =========================================================================
+
     public $defaultAction = 'run';
 
     /**
@@ -35,12 +41,20 @@ class ExportController extends Controller
      */
     public bool $refresh = false;
 
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     public function options($actionID): array
     {
         return array_merge(parent::options($actionID), ['format', 'path', 'refresh']);
     }
 
     /**
+     * Renders one report and writes it out.
+     *
      * @param string $report One of: fields, instances, entry-types, nested, layouts, cleanup.
      */
     public function actionRun(string $report = Exports::REPORT_FIELDS): int

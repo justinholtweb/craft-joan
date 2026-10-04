@@ -19,7 +19,7 @@
                 <tr>
                     <td>
                         <a href="{{ url('joan/fields/' ~ field.uid) }}">{{ field.name }}</a>
-                        <div class="joan-sub joan-mono">{{ field.handle }}</div>
+                        <div class="light smalltext code">{{ field.handle }}</div>
                     </td>
                     <td>{{ field.typeName }}</td>
                     <td class="joan-num">{{ field.layoutCount }}</td>
@@ -64,25 +64,25 @@
 
     {% if unusedFields is not empty %}
         <h2>{{ "Fields nothing uses"|t('joan') }}</h2>
-        <p class="joan-sub">{{ "In no field layout, holding no content, and named nowhere in the scanned code."|t('joan') }}</p>
+        <p class="light smalltext">{{ "In no field layout, holding no content, and named nowhere in the scanned code."|t('joan') }}</p>
         {{ tables.fieldTable(unusedFields) }}
     {% endif %}
 
     {% if strandedFields is not empty %}
         <h2 class="joan-section-heading">{{ "Fields with stranded content"|t('joan') }}</h2>
-        <p class="joan-sub">{{ "Removed from every field layout, but elements still hold values. Nothing renders them and no editor can reach them — and deleting the field destroys them."|t('joan') }}</p>
+        <p class="light smalltext">{{ "Removed from every field layout, but elements still hold values. Nothing renders them and no editor can reach them — and deleting the field destroys them."|t('joan') }}</p>
         {{ tables.fieldTable(strandedFields) }}
     {% endif %}
 
     {% if codeOnlyFields is not empty %}
         <h2 class="joan-section-heading">{{ "Fields only the code remembers"|t('joan') }}</h2>
-        <p class="joan-sub">{{ "In no field layout and holding no content, but the codebase still names the handle. Usually a template that was never cleaned up — occasionally a field populated entirely by a module."|t('joan') }}</p>
+        <p class="light smalltext">{{ "In no field layout and holding no content, but the codebase still names the handle. Usually a template that was never cleaned up — occasionally a field populated entirely by a module."|t('joan') }}</p>
         {{ tables.fieldTable(codeOnlyFields) }}
     {% endif %}
 
     {% if emptyFields is not empty %}
         <h2 class="joan-section-heading">{{ "Fields nobody fills in"|t('joan') }}</h2>
-        <p class="joan-sub">{{ "On a field layout, offered to editors, and never once given a value. Either it isn’t needed or nobody knows what it’s for."|t('joan') }}</p>
+        <p class="light smalltext">{{ "On a field layout, offered to editors, and never once given a value. Either it isn’t needed or nobody knows what it’s for."|t('joan') }}</p>
         {{ tables.fieldTable(emptyFields) }}
     {% endif %}
 
@@ -124,7 +124,7 @@
 
     {% if unusedBlockTypes is not empty %}
         <h2 class="joan-section-heading">{{ "Block types nobody picks"|t('joan') }}</h2>
-        <p class="joan-sub">{{ "Allowed by a nesting field, never once used in content."|t('joan') }}</p>
+        <p class="light smalltext">{{ "Allowed by a nesting field, never once used in content."|t('joan') }}</p>
         <table class="data fullwidth joan-table">
             <thead>
                 <tr>
@@ -147,7 +147,7 @@
 
     {% if unattributedLayouts is not empty %}
         <h2 class="joan-section-heading">{{ "Field layouts nothing claims"|t('joan') }}</h2>
-        <p class="joan-sub">{{ "Rows in the field layout table that no element type, and nothing else Joan can ask, admits to owning. Usually left behind by an uninstalled plugin."|t('joan') }}</p>
+        <p class="light smalltext">{{ "Rows in the field layout table that no element type, and nothing else Joan can ask, admits to owning. Usually left behind by an uninstalled plugin."|t('joan') }}</p>
         <table class="data fullwidth joan-table">
             <thead>
                 <tr>
@@ -159,8 +159,8 @@
             <tbody>
                 {% for layout in unattributedLayouts %}
                     <tr>
-                        <td class="joan-mono">#{{ layout.id ?? '?' }}</td>
-                        <td class="joan-mono">{{ layout.typeName ?? '—' }}</td>
+                        <td class="code">#{{ layout.id ?? '?' }}</td>
+                        <td class="code">{{ layout.typeName ?? '—' }}</td>
                         <td class="joan-num">{{ layout.fieldCount }}</td>
                     </tr>
                 {% endfor %}
@@ -170,7 +170,7 @@
 
     {% if strandedKeys is not empty %}
         <h2 class="joan-section-heading">{{ "Content with no field"|t('joan') }}</h2>
-        <p class="joan-sub">
+        <p class="light smalltext">
             {{ "Craft 5 keys stored content by field layout element, not by field. Take a field out of a layout and its values stay behind under a key nothing will ever read again. The layout element that knew which field this was is gone, so the key is as far as the trail goes."|t('joan') }}
         </p>
         <table class="data fullwidth joan-table">
@@ -183,7 +183,7 @@
             <tbody>
                 {% for key, rows in strandedKeys %}
                     <tr>
-                        <td class="joan-mono">{{ key }}</td>
+                        <td class="code">{{ key }}</td>
                         <td class="joan-num">{{ rows|number_format }}</td>
                     </tr>
                 {% endfor %}

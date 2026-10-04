@@ -7,9 +7,18 @@ use yii\web\Response;
 
 /**
  * Every field layout on the site, with the thing that owns it.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class LayoutsController extends BaseController
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Every field layout, optionally narrowed to one kind.
+     */
     public function actionIndex(): Response
     {
         $plugin = $this->plugin();

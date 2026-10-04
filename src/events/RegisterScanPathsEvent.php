@@ -15,9 +15,15 @@ use yii\base\Event;
  *     $event->paths[] = Craft::getAlias('@mymodule/templates');
  * });
  * ```
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class RegisterScanPathsEvent extends Event
 {
+    // Public Properties
+    // =========================================================================
+
     /** @var string[] Absolute directory paths. Anything that isn't a directory is dropped. */
     public array $paths = [];
 }

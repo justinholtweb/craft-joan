@@ -13,9 +13,15 @@ use craft\base\Model;
  *
  * The `elementUid` is the interesting one: since Craft 5, `elements_sites.content` is keyed
  * by the *layout element's* UID rather than by the field. That's the key Joan counts.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class FieldInstance extends Model
 {
+    // Public Properties
+    // =========================================================================
+
     public LayoutRef $layout;
 
     /** @var string The field layout element UID — the key this instance's content is stored under. */

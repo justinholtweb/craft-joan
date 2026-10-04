@@ -8,9 +8,20 @@ use yii\web\Response;
 
 /**
  * Sends a report back as a file.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class ExportController extends BaseController
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Sends a report as a file download.
+     *
+     * @throws BadRequestHttpException if the report or format isn't one Joan knows
+     */
     public function actionDownload(): Response
     {
         $report = (string)$this->request->getRequiredParam('report');

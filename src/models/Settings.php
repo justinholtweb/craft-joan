@@ -9,9 +9,15 @@ use craft\base\Model;
  *
  * Joan reads; it never writes. So there's nothing here about what it's allowed to change —
  * only about how hard it should look, and how long it's allowed to remember what it found.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class Settings extends Model
 {
+    // Public Properties
+    // =========================================================================
+
     /**
      * @var bool Whether content usage is counted at all.
      *
@@ -94,20 +100,8 @@ class Settings extends Model
      */
     public string $logLevel = 'info';
 
-    public function rules(): array
-    {
-        // Nothing is `required`: a failing required rule invalidates the whole settings
-        // model, which blocks saving any setting at all — including on a fresh install.
-        return [
-            [['countContent', 'includeDrafts', 'scanCode', 'includePluginContexts'], 'boolean'],
-            [['maxFileSize'], 'integer', 'min' => 1, 'max' => 4096],
-            [['maxRefsPerField'], 'integer', 'min' => 1],
-            [['maxFiles'], 'integer', 'min' => 0, 'max' => 100000],
-            [['cacheDuration'], 'integer', 'min' => 0],
-            [['logLevel'], 'in', 'range' => ['error', 'warning', 'info', 'debug']],
-            [['scanPaths', 'scanExtensions', 'scanExclude', 'ignoredFields'], 'each', 'rule' => ['string']],
-        ];
-    }
+    // Public Methods
+    // =========================================================================
 
     /**
      * The scan paths, cleaned of the blanks an admin's textarea leaves behind.
@@ -120,6 +114,8 @@ class Settings extends Model
     }
 
     /**
+     * The scan extensions, lowercased and without leading dots.
+     *
      * @return string[]
      */
     public function normalizedExtensions(): array
@@ -128,5 +124,26 @@ class Settings extends Model
             fn(string $ext) => strtolower(ltrim(trim($ext), '.')),
             $this->scanExtensions,
         ), fn(string $ext) => $ext !== ''));
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        // Nothing is `required`: a failing required rule invalidates the whole settings
+        // model, which blocks saving any setting at all — including on a fresh install.
+        return array_merge(parent::defineRules(), [
+            [['countContent', 'includeDrafts', 'scanCode', 'includePluginContexts'], 'boolean'],
+            [['maxFileSize'], 'integer', 'min' => 1, 'max' => 4096],
+            [['maxRefsPerField'], 'integer', 'min' => 1],
+            [['maxFiles'], 'integer', 'min' => 0, 'max' => 100000],
+            [['cacheDuration'], 'integer', 'min' => 0],
+            [['logLevel'], 'in', 'range' => ['error', 'warning', 'info', 'debug']],
+            [['scanPaths', 'scanExtensions', 'scanExclude', 'ignoredFields'], 'each', 'rule' => ['string']],
+        ]);
     }
 }

@@ -20,12 +20,12 @@
         <div class="joan-card">
             <h4>{{ "Verdict"|t('joan') }}</h4>
             <div style="margin: 6px 0;">{% include "joan/_partials/verdict" with { verdict: report.verdict } only %}</div>
-            <div class="joan-sub joan-mono">{{ report.handle }}</div>
+            <div class="light smalltext code">{{ report.handle }}</div>
         </div>
         <div class="joan-card">
             <h4>{{ "Entries"|t('joan') }}</h4>
             <div class="joan-figure">{{ report.totalEntries|number_format }}</div>
-            <div class="joan-sub">
+            <div class="light smalltext">
                 {{ "{top} top-level, {nested} nested"|t('joan', {
                     top: report.topLevelEntries|number_format,
                     nested: report.nestedEntries|number_format,
@@ -35,15 +35,17 @@
         <div class="joan-card">
             <h4>{{ "Fields"|t('joan') }}</h4>
             <div class="joan-figure">{{ report.fieldCount }}</div>
-            <div class="joan-sub">{{ report.hasTitleField ? "plus a title"|t('joan') : "no title field"|t('joan') }}</div>
+            <div class="light smalltext">{{ report.hasTitleField ? "plus a title"|t('joan') : "no title field"|t('joan') }}</div>
         </div>
     </div>
 
     <h2>{{ "Used by"|t('joan') }}</h2>
 
     {% if report.sections is empty and report.nestingFields is empty %}
-        <p class="joan-note is-warning">
-            {{ "No section uses this entry type and no field nests it. If entries of this type still exist, they’re only reachable by ID."|t('joan') }}
+        <p class="warning has-icon">
+            <span class="icon" aria-hidden="true"></span>
+            <span class="visually-hidden">{{ "Warning:"|t('joan') }} </span>
+            <span>{{ "No section uses this entry type and no field nests it. If entries of this type still exist, they’re only reachable by ID."|t('joan') }}</span>
         </p>
     {% else %}
         <ul>
@@ -55,7 +57,7 @@
                     {{ "Nested in the {type} field"|t('joan', { type: field.type }) }}
                     <strong>{{ field.name }}</strong>
                     {% if report.entriesByField[field.name] is defined %}
-                        <span class="joan-sub">
+                        <span class="light smalltext">
                             {{ "{n} block(s)"|t('joan', { n: report.entriesByField[field.name]|number_format }) }}
                         </span>
                     {% endif %}
@@ -84,7 +86,7 @@
                     <tr>
                         <td>
                             <a href="{{ url('joan/fields/' ~ row.field.uid) }}">{{ row.instance.label ?? row.field.name }}</a>
-                            <div class="joan-sub joan-mono">{{ row.instance.handle }}</div>
+                            <div class="light smalltext code">{{ row.instance.handle }}</div>
                         </td>
                         <td>{{ row.field.typeName }}</td>
                         <td>{{ row.instance.tab ?? '—' }}</td>

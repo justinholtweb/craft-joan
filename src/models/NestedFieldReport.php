@@ -9,15 +9,27 @@ use craft\base\Model;
  *
  * The question this answers is the one nobody can answer from the control panel: of the
  * eight block types this Matrix field allows, which ones has anyone ever actually used?
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class NestedFieldReport extends Model
 {
+    // Public Properties
+    // =========================================================================
+
     public int $id = 0;
+
     public string $uid = '';
+
     public string $name = '';
+
     public string $handle = '';
+
     public string $type = '';
+
     public string $typeName = '';
+
     public ?string $cpEditUrl = null;
 
     /**
@@ -37,6 +49,9 @@ class NestedFieldReport extends Model
     /** @var int Owners — elements with at least one block in this field. */
     public int $owners = 0;
 
+    // Public Methods
+    // =========================================================================
+
     /**
      * Entry types this field allows that nobody has ever used.
      *
@@ -47,6 +62,9 @@ class NestedFieldReport extends Model
         return array_values(array_filter($this->entryTypes, fn(array $t) => $t['entries'] === 0));
     }
 
+    /**
+     * Blocks per owner, to one decimal place.
+     */
     public function getAverageBlocksPerOwner(): float
     {
         return $this->owners > 0 ? round($this->totalBlocks / $this->owners, 1) : 0.0;

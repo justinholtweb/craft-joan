@@ -14,9 +14,15 @@ use yii\console\ExitCode;
  *     php craft joan/fields
  *     php craft joan/fields --verdict=unused
  *     php craft joan/fields/show heroImage
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class FieldsController extends Controller
 {
+    // Public Properties
+    // =========================================================================
+
     public $defaultAction = 'index';
 
     /**
@@ -34,6 +40,12 @@ class FieldsController extends Controller
      */
     public bool $verbose = false;
 
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     public function options($actionID): array
     {
         $options = parent::options($actionID);
@@ -67,13 +79,13 @@ class FieldsController extends Controller
         foreach ($fields as $field) {
             $this->stdout(sprintf(
                 "%-32s %-22s %7s %9s %6s  ",
-                $this->truncate($field->handle, 32),
-                $this->truncate($field->typeName, 22),
+                $this->_truncate($field->handle, 32),
+                $this->_truncate($field->typeName, 22),
                 $field->getLayoutCount(),
                 $field->wasCounted() ? number_format($field->usedElements) : '?',
                 $field->codeScanned ? $field->getCodeRefCount() : '?',
             ));
-            $this->stdout($this->verdictLabel($field->verdict) . "\n", $this->verdictColor($field->verdict));
+            $this->stdout($this->_verdictLabel($field->verdict) . "\n", $this->_verdictColor($field->verdict));
 
             if ($this->verbose) {
                 foreach ($field->instances as $instance) {
@@ -87,7 +99,7 @@ class FieldsController extends Controller
         }
 
         $this->stdout("\n");
-        $this->printScanNotes();
+        $this->_printScanNotes();
 
         return ExitCode::OK;
     }
@@ -114,7 +126,7 @@ class FieldsController extends Controller
         $this->stdout(sprintf("  type      %s\n", $field->typeName));
         $this->stdout(sprintf("  storage   %s\n", implode(', ', $field->strategies)));
         $this->stdout('  verdict   ');
-        $this->stdout($this->verdictLabel($field->verdict) . "\n", $this->verdictColor($field->verdict));
+        $this->stdout($this->_verdictLabel($field->verdict) . "\n", $this->_verdictColor($field->verdict));
         $this->stdout("\n");
 
         $this->stdout("Used in\n", Console::FG_CYAN);
@@ -161,14 +173,20 @@ class FieldsController extends Controller
             $this->stdout("  no references found\n", Console::FG_GREY);
         } else {
             foreach ($field->codeRefs as $ref) {
-                $this->stdout(sprintf("  %s:%s  %s\n", $ref->path, $ref->line, $this->truncate($ref->snippet, 90)), $ref->isStrong() ? Console::FG_GREEN : Console::FG_GREY);
+                $this->stdout(sprintf("  %s:%s  %s\n", $ref->path, $ref->line, $this->_truncate($ref->snippet, 90)), $ref->isStrong() ? Console::FG_GREEN : Console::FG_GREY);
             }
         }
 
         return ExitCode::OK;
     }
 
-    private function printScanNotes(): void
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Says which numbers above to take with a pinch of salt, and why.
+     */
+    private function _printScanNotes(): void
     {
         $plugin = Plugin::getInstance();
         $scan = $plugin->inventory->contentScan();
@@ -185,7 +203,10 @@ class FieldsController extends Controller
         }
     }
 
-    private function verdictLabel(string $verdict): string
+    /**
+     * The verdict as a person would say it.
+     */
+    private function _verdictLabel(string $verdict): string
     {
         return match ($verdict) {
             FieldReport::VERDICT_IN_USE => 'in use',
@@ -197,7 +218,10 @@ class FieldsController extends Controller
         };
     }
 
-    private function verdictColor(string $verdict): int
+    /**
+     * Green for fine, yellow for worth a look, red for the ones to deal with.
+     */
+    private function _verdictColor(string $verdict): int
     {
         return match ($verdict) {
             FieldReport::VERDICT_IN_USE => Console::FG_GREEN,
@@ -207,7 +231,10 @@ class FieldsController extends Controller
         };
     }
 
-    private function truncate(string $value, int $length): string
+    /**
+     * Fits a value to its column, marking the cut with an ellipsis.
+     */
+    private function _truncate(string $value, int $length): string
     {
         return mb_strlen($value) > $length ? mb_substr($value, 0, $length - 1) . '…' : $value;
     }

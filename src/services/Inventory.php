@@ -26,9 +26,15 @@ use yii\base\Component;
  * expensive part of it — the layout walk, the content scan, the code scan — costs the same
  * for one field as for all of them. Building it for a single field would be the slow way
  * to answer a question about eighty.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class Inventory extends Component
 {
+    // Const Properties
+    // =========================================================================
+
     /**
      * @event DefineFieldUsageEvent Fired for each field once it's been measured, before its
      *                              verdict is decided. The place for a field type that
@@ -38,13 +44,19 @@ class Inventory extends Component
 
     private const CACHE_PREFIX = 'joan.inventory';
 
-    /** @var FieldReport[]|null Keyed by field UID. */
-    private ?array $reports = null;
+    // Private Properties
+    // =========================================================================
 
-    private ?ContentScan $scan = null;
+    /** @var FieldReport[]|null Keyed by field UID. */
+    private ?array $_reports = null;
+
+    private ?ContentScan $_scan = null;
 
     /** @var array{files: int, bytes: int, truncated: bool, ran: bool, runtime: float, roots: string[]}|null */
-    private ?array $codeStats = null;
+    private ?array $_codeStats = null;
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Every field on the site, reported on.
@@ -53,8 +65,8 @@ class Inventory extends Component
      */
     public function fields(bool $refresh = false): array
     {
-        if ($this->reports !== null && !$refresh) {
-            return $this->reports;
+        if ($this->_reports !== null && !$refresh) {
+            return $this->_reports;
         }
 
         $cache = Craft::$app->getCache();
@@ -64,32 +76,38 @@ class Inventory extends Component
             $cached = $cache->get($key);
 
             if (is_array($cached) && isset($cached['reports'], $cached['scan'])) {
-                $this->scan = $cached['scan'];
-                $this->codeStats = $cached['codeStats'];
+                $this->_scan = $cached['scan'];
+                $this->_codeStats = $cached['codeStats'];
 
-                return $this->reports = $cached['reports'];
+                return $this->_reports = $cached['reports'];
             }
         }
 
-        $reports = $this->build();
-        $duration = $this->settings()->cacheDuration;
+        $reports = $this->_build();
+        $duration = $this->_settings()->cacheDuration;
 
         if ($duration > 0) {
             $cache->set($key, [
                 'reports' => $reports,
-                'scan' => $this->scan,
-                'codeStats' => $this->codeStats,
+                'scan' => $this->_scan,
+                'codeStats' => $this->_codeStats,
             ], $duration);
         }
 
-        return $this->reports = $reports;
+        return $this->_reports = $reports;
     }
 
+    /**
+     * One field's report, or null if there's no such field.
+     */
     public function getByUid(string $uid): ?FieldReport
     {
         return $this->fields()[$uid] ?? null;
     }
 
+    /**
+     * One field's report by ID, or null.
+     */
     public function getById(int $id): ?FieldReport
     {
         foreach ($this->fields() as $report) {
@@ -101,6 +119,9 @@ class Inventory extends Component
         return null;
     }
 
+    /**
+     * One field's report by handle, or null.
+     */
     public function getByHandle(string $handle): ?FieldReport
     {
         foreach ($this->fields() as $report) {
@@ -120,17 +141,19 @@ class Inventory extends Component
     {
         $this->fields();
 
-        return $this->scan ?? new ContentScan(['ran' => false]);
+        return $this->_scan ?? new ContentScan(['ran' => false]);
     }
 
     /**
+     * What the code scan behind the current inventory read.
+     *
      * @return array{files: int, bytes: int, truncated: bool, ran: bool, runtime: float, roots: string[]}
      */
     public function codeStats(): array
     {
         $this->fields();
 
-        return $this->codeStats ?? [
+        return $this->_codeStats ?? [
             'files' => 0,
             'bytes' => 0,
             'truncated' => false,
@@ -175,9 +198,9 @@ class Inventory extends Component
      */
     public function invalidate(): void
     {
-        $this->reports = null;
-        $this->scan = null;
-        $this->codeStats = null;
+        $this->_reports = null;
+        $this->_scan = null;
+        $this->_codeStats = null;
 
         Craft::$app->getCache()->delete($this->cacheKey());
 
@@ -187,14 +210,19 @@ class Inventory extends Component
         $plugin->entryTypes->reset();
     }
 
+    // Private Methods
+    // =========================================================================
+
     /**
+     * Builds the inventory from scratch: layouts, content, relations, nesting and code.
+     *
      * @return FieldReport[]
      */
-    private function build(): array
+    private function _build(): array
     {
         $plugin = Plugin::getInstance();
-        $settings = $this->settings();
-        $fields = $this->allFields();
+        $settings = $this->_settings();
+        $fields = $this->_allFields();
         $instances = $plugin->layouts->instancesByFieldUid();
 
         // Content is keyed by layout element UID; the scan needs to know which field each
@@ -209,14 +237,14 @@ class Inventory extends Component
             }
         }
 
-        $this->scan = $plugin->usage->scanContent($keyToField);
+        $this->_scan = $plugin->usage->scanContent($keyToField);
         $relationCounts = $plugin->usage->relationCounts();
         $nestedCounts = $plugin->usage->nestedCounts();
         $entryTypeNames = $plugin->entryTypes->names();
 
-        $codeRefs = $plugin->codeScan->scan($this->handleMap($fields, $instances));
+        $codeRefs = $plugin->codeScan->scan($this->_handleMap($fields, $instances));
         $codeTotals = $plugin->codeScan->totals();
-        $this->codeStats = $plugin->codeScan->stats();
+        $this->_codeStats = $plugin->codeScan->stats();
 
         $reports = [];
 
@@ -228,19 +256,19 @@ class Inventory extends Component
                 'name' => (string)$field->name,
                 'handle' => (string)$field->handle,
                 'type' => $field::class,
-                'typeName' => $this->typeName($field),
+                'typeName' => $this->_typeName($field),
                 'typeExists' => !$field instanceof MissingComponentInterface,
                 'context' => (string)$field->context,
                 'searchable' => (bool)$field->searchable,
                 'translationMethod' => (string)$field->translationMethod,
                 'instances' => $instances[$uid] ?? [],
-                'strategies' => $this->strategies($field),
+                'strategies' => $this->_strategies($field),
                 'codeRefs' => $codeRefs[$uid] ?? [],
-                'codeScanned' => $this->codeStats['ran'],
+                'codeScanned' => $this->_codeStats['ran'],
                 'ignored' => in_array($field->handle, $settings->ignoredFields, true),
             ]);
 
-            $this->applyCounts($report, $field, $relationCounts, $nestedCounts, $entryTypeNames);
+            $this->_applyCounts($report, $field, $relationCounts, $nestedCounts, $entryTypeNames);
 
             if (isset($codeTotals[$uid])) {
                 $report->codeRefTotal = $codeTotals[$uid];
@@ -253,7 +281,7 @@ class Inventory extends Component
                 ]));
             }
 
-            $report->verdict = $this->verdict($report);
+            $report->verdict = $this->_verdict($report);
             $reports[$uid] = $report;
         }
 
@@ -263,23 +291,25 @@ class Inventory extends Component
     }
 
     /**
+     * Fills in a report's usage counts from whichever storage strategies apply to it.
+     *
      * @param array<int, array{elements: int, targets: int}> $relationCounts
      * @param array<int, array{blocks: int, owners: int, byType: array<int, int>}> $nestedCounts
      * @param array<int, string> $entryTypeNames
      */
-    private function applyCounts(
+    private function _applyCounts(
         FieldReport $report,
         FieldInterface $field,
         array $relationCounts,
         array $nestedCounts,
         array $entryTypeNames,
     ): void {
-        $scan = $this->scan;
+        $scan = $this->_scan;
 
         if ($scan !== null && $scan->ran && in_array(FieldReport::STRATEGY_CONTENT, $report->strategies, true)) {
             $report->usedElements = $scan->countFor($report->uid);
-            $report->byElementType = $this->labelTypes($scan->typesFor($report->uid));
-            $report->bySite = $this->labelSites($scan->sitesFor($report->uid));
+            $report->byElementType = $this->_labelTypes($scan->typesFor($report->uid));
+            $report->bySite = $this->_labelSites($scan->sitesFor($report->uid));
         }
 
         if (in_array(FieldReport::STRATEGY_RELATIONS, $report->strategies, true)) {
@@ -320,7 +350,7 @@ class Inventory extends Component
      *
      * @return string[]
      */
-    private function strategies(FieldInterface $field): array
+    private function _strategies(FieldInterface $field): array
     {
         $strategies = [];
 
@@ -346,7 +376,7 @@ class Inventory extends Component
     /**
      * The verdict. This is the sentence the whole plugin exists to write.
      */
-    private function verdict(FieldReport $report): string
+    private function _verdict(FieldReport $report): string
     {
         $hasLayouts = $report->instances !== [];
         $hasContent = $report->usedElements > 0 || $report->nestedElements > 0;
@@ -384,11 +414,13 @@ class Inventory extends Component
     }
 
     /**
+     * Every field the inventory covers. Plugin contexts only when the settings ask.
+     *
      * @return FieldInterface[]
      */
-    private function allFields(): array
+    private function _allFields(): array
     {
-        $settings = $this->settings();
+        $settings = $this->_settings();
         $context = $settings->includePluginContexts ? false : 'global';
 
         try {
@@ -411,7 +443,7 @@ class Inventory extends Component
      * @param array<string, FieldInstance[]> $instances
      * @return array<string, string[]>
      */
-    private function handleMap(array $fields, array $instances): array
+    private function _handleMap(array $fields, array $instances): array
     {
         $map = [];
 
@@ -436,10 +468,12 @@ class Inventory extends Component
     }
 
     /**
+     * Swaps element type classes for display names, merging any that share one.
+     *
      * @param array<string, int> $counts
      * @return array<string, int>
      */
-    private function labelTypes(array $counts): array
+    private function _labelTypes(array $counts): array
     {
         $labelled = [];
 
@@ -456,10 +490,12 @@ class Inventory extends Component
     }
 
     /**
+     * Swaps site IDs for site names.
+     *
      * @param array<int, int> $counts
      * @return array<string, int>
      */
-    private function labelSites(array $counts): array
+    private function _labelSites(array $counts): array
     {
         $labelled = [];
         $sites = ArrayHelper::index(Craft::$app->getSites()->getAllSites(true), 'id');
@@ -474,7 +510,10 @@ class Inventory extends Component
         return $labelled;
     }
 
-    private function typeName(FieldInterface $field): string
+    /**
+     * The field type's display name, or its class name if it won't give one.
+     */
+    private function _typeName(FieldInterface $field): string
     {
         try {
             return (string)$field::displayName();
@@ -490,7 +529,7 @@ class Inventory extends Component
      */
     private function cacheKey(): string
     {
-        $settings = $this->settings();
+        $settings = $this->_settings();
         $signature = md5(serialize([
             $settings->countContent,
             $settings->includeDrafts,
@@ -511,7 +550,10 @@ class Inventory extends Component
         );
     }
 
-    private function settings(): Settings
+    /**
+     * Joan's settings, typed.
+     */
+    private function _settings(): Settings
     {
         return Plugin::getInstance()->getSettings();
     }

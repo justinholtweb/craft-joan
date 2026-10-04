@@ -7,9 +7,18 @@ use yii\web\Response;
 
 /**
  * The overview: how big the content model is, and how much of it nothing is using.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class OverviewController extends BaseController
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * The landing screen: the busiest fields next to the ones that need attention.
+     */
     public function actionIndex(): Response
     {
         $plugin = $this->plugin();

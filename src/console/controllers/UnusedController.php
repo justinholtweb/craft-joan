@@ -19,9 +19,15 @@ use yii\console\ExitCode;
  * The `--fail-on` flag is there so this can sit in a build: a pull request that adds a
  * field and forgets to use it fails, and so does one that deletes the last template
  * reference to a field and leaves the field behind.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class UnusedController extends Controller
 {
+    // Public Properties
+    // =========================================================================
+
     public $defaultAction = 'index';
 
     /**
@@ -36,16 +42,28 @@ class UnusedController extends Controller
      */
     public bool $refresh = true;
 
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
     public function options($actionID): array
     {
         return array_merge(parent::options($actionID), ['failOn', 'refresh']);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function optionAliases(): array
     {
         return array_merge(parent::optionAliases(), ['f' => 'failOn']);
     }
 
+    /**
+     * Lists everything unused, stranded or empty, grouped by how worried to be.
+     */
     public function actionIndex(): int
     {
         $plugin = Plugin::getInstance();
@@ -67,46 +85,46 @@ class UnusedController extends Controller
             }
         }
 
-        $this->section('Fields in no layout, with no content and no code references', array_map(
+        $this->_section('Fields in no layout, with no content and no code references', array_map(
             fn(FieldReport $f) => sprintf('%s (%s)', $f->handle, $f->typeName),
             $unusedFields,
         ), Console::FG_RED);
 
-        $this->section('Fields in no layout, but content still exists', array_map(
+        $this->_section('Fields in no layout, but content still exists', array_map(
             fn(FieldReport $f) => sprintf('%s — %s element(s) still hold a value', $f->handle, number_format($f->usedElements)),
             $strandedFields,
         ), Console::FG_RED);
 
-        $this->section('Fields in no layout, but the codebase still names them', array_map(
+        $this->_section('Fields in no layout, but the codebase still names them', array_map(
             fn(FieldReport $f) => sprintf('%s — %s reference(s)', $f->handle, $f->getCodeRefCount()),
             $codeOnlyFields,
         ), Console::FG_YELLOW);
 
-        $this->section('Fields in a layout that nobody has ever filled in', array_map(
+        $this->_section('Fields in a layout that nobody has ever filled in', array_map(
             fn(FieldReport $f) => sprintf('%s — in %s layout(s), 0 elements', $f->handle, $f->getLayoutCount()),
             $emptyFields,
         ), Console::FG_YELLOW);
 
-        $this->section('Entry types attached to nothing', array_map(
+        $this->_section('Entry types attached to nothing', array_map(
             fn(EntryTypeReport $t) => sprintf('%s (%s)', $t->name, $t->handle),
             $unusedTypes,
         ), Console::FG_RED);
 
-        $this->section('Entry types attached to nothing, with entries still in them', array_map(
+        $this->_section('Entry types attached to nothing, with entries still in them', array_map(
             fn(EntryTypeReport $t) => sprintf('%s — %s entries', $t->name, number_format($t->getTotalEntries())),
             $strandedTypes,
         ), Console::FG_RED);
 
-        $this->section('Block types a field allows but nothing uses', $unusedBlockTypes, Console::FG_YELLOW);
+        $this->_section('Block types a field allows but nothing uses', $unusedBlockTypes, Console::FG_YELLOW);
 
-        $this->section('Field layouts nothing claims', array_map(
+        $this->_section('Field layouts nothing claims', array_map(
             fn(LayoutRef $layout) => sprintf('#%s (%s), %s field(s)', $layout->id, $layout->typeName ?? 'unknown type', $layout->fieldCount),
             $plugin->layouts->unattributed(),
         ), Console::FG_YELLOW);
 
         $strandedKeys = $plugin->inventory->contentScan()->strandedKeys;
 
-        $this->section('Content keys belonging to no field layout', array_map(
+        $this->_section('Content keys belonging to no field layout', array_map(
             fn(string $key, int $rows) => sprintf('%s — %s row(s)', $key, number_format($rows)),
             array_keys($strandedKeys),
             array_values($strandedKeys),
@@ -135,13 +153,18 @@ class UnusedController extends Controller
             $this->stdout("The codebase wasn't scanned — turn `scanCode` on before trusting “unused”.\n", Console::FG_YELLOW);
         }
 
-        return $this->exitCode($totals);
+        return $this->_exitCode($totals);
     }
 
+    // Private Methods
+    // =========================================================================
+
     /**
+     * Whether what was found is bad enough, by the `--fail-on` threshold, to fail the build.
+     *
      * @param array<string, int> $totals
      */
-    private function exitCode(array $totals): int
+    private function _exitCode(array $totals): int
     {
         return match ($this->failOn) {
             'unused' => $totals['unused'] > 0 ? ExitCode::UNSPECIFIED_ERROR : ExitCode::OK,
@@ -152,9 +175,11 @@ class UnusedController extends Controller
     }
 
     /**
+     * Prints one group of findings. An empty group prints nothing, heading included.
+     *
      * @param string[] $lines
      */
-    private function section(string $heading, array $lines, int $color): void
+    private function _section(string $heading, array $lines, int $color): void
     {
         if ($lines === []) {
             return;

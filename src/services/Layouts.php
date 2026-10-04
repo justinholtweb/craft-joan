@@ -36,14 +36,23 @@ use yii\base\Component;
  *    yields real names and real edit URLs, for third-party element types as much as core.
  * 2. Anything left whose `type` is a class Craft can load gets named from the class.
  * 3. Anything still left is reported as unattributed, which is a finding in itself.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class Layouts extends Component
 {
+    // Private Properties
+    // =========================================================================
+
     /** @var LayoutRef[]|null Keyed by layout UID. */
-    private ?array $refs = null;
+    private ?array $_refs = null;
 
     /** @var array<string, FieldLayout>|null Keyed by layout UID. */
-    private ?array $layouts = null;
+    private ?array $_layouts = null;
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Every layout on the site, attributed, keyed by layout UID.
@@ -52,31 +61,36 @@ class Layouts extends Component
      */
     public function all(): array
     {
-        if ($this->refs !== null) {
-            return $this->refs;
+        if ($this->_refs !== null) {
+            return $this->_refs;
         }
 
-        $layouts = $this->rawLayouts();
-        $providers = $this->providersByLayoutUid();
+        $layouts = $this->_rawLayouts();
+        $providers = $this->_providersByLayoutUid();
         $refs = [];
 
         foreach ($layouts as $uid => $layout) {
-            $refs[$uid] = $this->buildRef($layout, $providers[$uid] ?? null);
+            $refs[$uid] = $this->_buildRef($layout, $providers[$uid] ?? null);
         }
 
         uasort($refs, function(LayoutRef $a, LayoutRef $b) {
             return [$a->kind, $a->typeName ?? '', $a->label] <=> [$b->kind, $b->typeName ?? '', $b->label];
         });
 
-        return $this->refs = $refs;
+        return $this->_refs = $refs;
     }
 
+    /**
+     * One layout's reference, or null if there's no such layout.
+     */
     public function getByUid(string $uid): ?LayoutRef
     {
         return $this->all()[$uid] ?? null;
     }
 
     /**
+     * The layouts nothing would claim.
+     *
      * @return LayoutRef[]
      */
     public function unattributed(): array
@@ -101,15 +115,15 @@ class Layouts extends Component
         $instances = [];
         $refs = $this->all();
 
-        foreach ($this->rawLayouts() as $uid => $layout) {
+        foreach ($this->_rawLayouts() as $uid => $layout) {
             $ref = $refs[$uid] ?? null;
 
             if ($ref === null) {
                 continue;
             }
 
-            foreach ($this->customFieldElements($layout) as [$element, $tabName]) {
-                $fieldUid = $this->fieldUid($element);
+            foreach ($this->_customFieldElements($layout) as [$element, $tabName]) {
+                $fieldUid = $this->_fieldUid($element);
 
                 if ($fieldUid === null) {
                     continue;
@@ -118,12 +132,12 @@ class Layouts extends Component
                 $instances[$fieldUid][] = new FieldInstance([
                     'layout' => $ref,
                     'elementUid' => (string)$element->uid,
-                    'handle' => $this->instanceHandle($element),
-                    'handleOverridden' => $element->handle !== null && $element->handle !== $this->originalHandle($element),
-                    'label' => $this->instanceLabel($element),
+                    'handle' => $this->_instanceHandle($element),
+                    'handleOverridden' => $element->handle !== null && $element->handle !== $this->_originalHandle($element),
+                    'label' => $this->_instanceLabel($element),
                     'required' => (bool)$element->required,
                     'tab' => $tabName,
-                    'conditional' => $this->isConditional($element),
+                    'conditional' => $this->_isConditional($element),
                 ]);
             }
         }
@@ -155,17 +169,22 @@ class Layouts extends Component
      */
     public function reset(): void
     {
-        $this->refs = null;
-        $this->layouts = null;
+        $this->_refs = null;
+        $this->_layouts = null;
     }
 
+    // Private Methods
+    // =========================================================================
+
     /**
+     * Every field layout Craft has, memoized.
+     *
      * @return array<string, FieldLayout> Keyed by UID.
      */
-    private function rawLayouts(): array
+    private function _rawLayouts(): array
     {
-        if ($this->layouts !== null) {
-            return $this->layouts;
+        if ($this->_layouts !== null) {
+            return $this->_layouts;
         }
 
         $layouts = [];
@@ -176,7 +195,7 @@ class Layouts extends Component
             }
         }
 
-        return $this->layouts = $layouts;
+        return $this->_layouts = $layouts;
     }
 
     /**
@@ -184,11 +203,11 @@ class Layouts extends Component
      *
      * @return array<string, array{provider: Chippable|null, type: class-string<ElementInterface>}>
      */
-    private function providersByLayoutUid(): array
+    private function _providersByLayoutUid(): array
     {
         $providers = [];
 
-        foreach ($this->elementTypes() as $type) {
+        foreach ($this->_elementTypes() as $type) {
             try {
                 $layouts = $type::fieldLayouts(null);
             } catch (Throwable $e) {
@@ -218,9 +237,11 @@ class Layouts extends Component
     }
 
     /**
+     * Every registered element type that really is one.
+     *
      * @return class-string<ElementInterface>[]
      */
-    private function elementTypes(): array
+    private function _elementTypes(): array
     {
         $types = [];
 
@@ -234,11 +255,13 @@ class Layouts extends Component
     }
 
     /**
+     * Describes one layout, using its owner when one was found.
+     *
      * @param array{provider: Chippable|null, type: class-string<ElementInterface>}|null $attribution
      */
-    private function buildRef(FieldLayout $layout, ?array $attribution): LayoutRef
+    private function _buildRef(FieldLayout $layout, ?array $attribution): LayoutRef
     {
-        $tabs = $this->tabs($layout);
+        $tabs = $this->_tabs($layout);
 
         $ref = new LayoutRef([
             'id' => $layout->id ?? null,
@@ -254,12 +277,12 @@ class Layouts extends Component
 
             $ref->kind = LayoutRef::KIND_ELEMENT;
             $ref->isElementLayout = true;
-            $ref->typeName = $this->displayName($elementType);
+            $ref->typeName = $this->_displayName($elementType);
 
             if ($provider !== null) {
                 $ref->label = $provider->getUiLabel();
                 $ref->icon = $provider instanceof Iconic ? $provider->getIcon() : null;
-                $ref->cpEditUrl = $this->providerUrl($provider);
+                $ref->cpEditUrl = $this->_providerUrl($provider);
             } else {
                 // An element type with exactly one layout and nothing to name it — Users,
                 // Addresses. The element type's own name is the honest label.
@@ -276,12 +299,12 @@ class Layouts extends Component
         if (
             $layout->type !== null &&
             class_exists($layout->type) &&
-            !in_array($layout->type, $this->elementTypes(), true)
+            !in_array($layout->type, $this->_elementTypes(), true)
         ) {
             $ref->kind = LayoutRef::KIND_OTHER;
             $ref->isElementLayout = false;
-            $ref->typeName = $this->displayName($layout->type);
-            $ref->label = $this->componentLabel($layout->type);
+            $ref->typeName = $this->_displayName($layout->type);
+            $ref->label = $this->_componentLabel($layout->type);
 
             return $ref;
         }
@@ -290,13 +313,16 @@ class Layouts extends Component
         $ref->isElementLayout = false;
         $ref->typeName = $layout->type;
         $ref->label = $layout->type !== null
-            ? Craft::t('joan', 'Unclaimed layout ({type})', ['type' => $this->shortClass($layout->type)])
+            ? Craft::t('joan', 'Unclaimed layout ({type})', ['type' => $this->_shortClass($layout->type)])
             : Craft::t('joan', 'Unclaimed layout #{id}', ['id' => $layout->id ?? '?']);
 
         return $ref;
     }
 
-    private function providerUrl(Chippable $provider): ?string
+    /**
+     * Where to edit the layout's owner, if anywhere.
+     */
+    private function _providerUrl(Chippable $provider): ?string
     {
         // Global sets are edited from the settings screen, not the element's edit page —
         // the same special case Craft's own "Used by" panel makes.
@@ -316,9 +342,11 @@ class Layouts extends Component
     }
 
     /**
+     * The layout's tabs, or none if they can't be read.
+     *
      * @return FieldLayoutTab[]
      */
-    private function tabs(FieldLayout $layout): array
+    private function _tabs(FieldLayout $layout): array
     {
         try {
             return $layout->getTabs();
@@ -332,11 +360,11 @@ class Layouts extends Component
      *
      * @return array<int, array{0: CustomField, 1: string|null}>
      */
-    private function customFieldElements(FieldLayout $layout): array
+    private function _customFieldElements(FieldLayout $layout): array
     {
         $found = [];
 
-        foreach ($this->tabs($layout) as $tab) {
+        foreach ($this->_tabs($layout) as $tab) {
             foreach ($tab->getElements() as $element) {
                 if ($element instanceof CustomField) {
                     $found[] = [$element, $tab->name ?? null];
@@ -353,7 +381,7 @@ class Layouts extends Component
      * `getFieldUid()` throws when the underlying field has been deleted out from under the
      * layout, which is precisely the state Joan exists to report on.
      */
-    private function fieldUid(CustomField $element): ?string
+    private function _fieldUid(CustomField $element): ?string
     {
         try {
             return $element->getFieldUid();
@@ -362,7 +390,10 @@ class Layouts extends Component
         }
     }
 
-    private function originalHandle(CustomField $element): ?string
+    /**
+     * The field's own handle, ignoring any override on this layout.
+     */
+    private function _originalHandle(CustomField $element): ?string
     {
         try {
             return $element->getOriginalHandle();
@@ -371,16 +402,22 @@ class Layouts extends Component
         }
     }
 
-    private function instanceHandle(CustomField $element): string
+    /**
+     * The handle templates use for the field on this layout.
+     */
+    private function _instanceHandle(CustomField $element): string
     {
         if ($element->handle !== null && $element->handle !== '') {
             return $element->handle;
         }
 
-        return (string)($this->originalHandle($element) ?? '');
+        return (string)($this->_originalHandle($element) ?? '');
     }
 
-    private function instanceLabel(CustomField $element): ?string
+    /**
+     * The label editors see on this layout, if it can be read.
+     */
+    private function _instanceLabel(CustomField $element): ?string
     {
         try {
             return $element->label();
@@ -389,7 +426,10 @@ class Layouts extends Component
         }
     }
 
-    private function isConditional(CustomField $element): bool
+    /**
+     * Whether the field is only shown on this layout under some condition.
+     */
+    private function _isConditional(CustomField $element): bool
     {
         try {
             return $element->hasConditions();
@@ -398,7 +438,10 @@ class Layouts extends Component
         }
     }
 
-    private function displayName(string $class): string
+    /**
+     * A class's display name, or its short name if it has none.
+     */
+    private function _displayName(string $class): string
     {
         if (method_exists($class, 'displayName')) {
             try {
@@ -408,15 +451,15 @@ class Layouts extends Component
             }
         }
 
-        return $this->shortClass($class);
+        return $this->_shortClass($class);
     }
 
     /**
      * A readable label for a non-element layout owner: "Hyper — Entry".
      */
-    private function componentLabel(string $class): string
+    private function _componentLabel(string $class): string
     {
-        $name = $this->displayName($class);
+        $name = $this->_displayName($class);
         $parts = explode('\\', $class);
         $vendor = $parts[0];
 
@@ -427,7 +470,10 @@ class Layouts extends Component
         return $name;
     }
 
-    private function shortClass(string $class): string
+    /**
+     * A class name without its namespace.
+     */
+    private function _shortClass(string $class): string
     {
         $parts = explode('\\', $class);
 

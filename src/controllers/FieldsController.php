@@ -9,9 +9,18 @@ use yii\web\Response;
 
 /**
  * The field inventory, and the drill-down behind each row.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class FieldsController extends BaseController
 {
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Every field, filtered by verdict, type or a search term.
+     */
     public function actionIndex(): Response
     {
         $fields = $this->plugin()->inventory->fields();
@@ -58,6 +67,11 @@ class FieldsController extends BaseController
         ]));
     }
 
+    /**
+     * Everything known about one field.
+     *
+     * @throws NotFoundHttpException if no field has that UID
+     */
     public function actionDetail(string $uid): Response
     {
         $field = $this->plugin()->inventory->getByUid($uid);

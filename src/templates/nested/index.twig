@@ -24,10 +24,10 @@
     {% for report in reports %}
         <h2 class="joan-section-heading">
             {% if report.cpEditUrl %}<a href="{{ report.cpEditUrl }}">{{ report.name }}</a>{% else %}{{ report.name }}{% endif %}
-            <span class="joan-sub joan-mono">{{ report.handle }}</span>
+            <span class="light smalltext code">{{ report.handle }}</span>
         </h2>
 
-        <p class="joan-sub">
+        <p class="light smalltext">
             {{ "{blocks} block(s) across {owners} element(s) — {avg} per element on average. {type}."|t('joan', {
                 blocks: report.totalBlocks|number_format,
                 owners: report.owners|number_format,
@@ -53,12 +53,12 @@
                         <tr>
                             <td>
                                 {% if entryType.url %}<a href="{{ entryType.url }}">{{ entryType.name }}</a>{% else %}{{ entryType.name }}{% endif %}
-                                <div class="joan-sub joan-mono">{{ entryType.handle }}</div>
+                                <div class="light smalltext code">{{ entryType.handle }}</div>
                             </td>
                             <td class="joan-num">
                                 {{ entryType.entries|number_format }}
                                 {% if entryType.entries == 0 %}
-                                    <div class="joan-sub">{{ "never used"|t('joan') }}</div>
+                                    <div class="light smalltext">{{ "never used"|t('joan') }}</div>
                                 {% endif %}
                             </td>
                             <td>

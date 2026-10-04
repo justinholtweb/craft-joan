@@ -10,9 +10,15 @@ use craft\base\Model;
  * Joan reports these rather than judging them. A hit inside a comment and a hit inside
  * `entry.myField.one()` look the same to a scanner, and the person deciding whether to
  * delete a field is much better at telling them apart than a regular expression is.
+ *
+ * @author Justin Holt <justin@justinholt.com>
+ * @since 5.0.0
  */
 class CodeReference extends Model
 {
+    // Const Properties
+    // =========================================================================
+
     /** `entry.handle`, `element.handle` — almost certainly a real use. */
     public const CONTEXT_PROPERTY = 'property';
 
@@ -21,6 +27,9 @@ class CodeReference extends Model
 
     /** The handle appears, but not in a shape that suggests a field access. */
     public const CONTEXT_MENTION = 'mention';
+
+    // Public Properties
+    // =========================================================================
 
     /** @var string Path relative to the scanned root. */
     public string $path = '';
@@ -34,6 +43,9 @@ class CodeReference extends Model
 
     /** @var string The handle that matched — a field can answer to several. */
     public string $handle = '';
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Whether this reference is strong enough to argue against deletion on its own.

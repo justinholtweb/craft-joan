@@ -15,36 +15,36 @@
         <div class="joan-card">
             <h4>{{ "Fields"|t('joan') }}</h4>
             <div class="joan-figure">{{ summary.fields|number_format }}</div>
-            <div class="joan-sub">
+            <div class="light smalltext">
                 {{ "{n} in use"|t('joan', { n: summary.inUse|number_format }) }}
             </div>
         </div>
         <div class="joan-card{{ summary.unused ? ' is-bad' }}">
             <h4>{{ "Unused fields"|t('joan') }}</h4>
             <div class="joan-figure">{{ summary.unused|number_format }}</div>
-            <div class="joan-sub">{{ "no layout, no content, no code"|t('joan') }}</div>
+            <div class="light smalltext">{{ "no layout, no content, no code"|t('joan') }}</div>
         </div>
         <div class="joan-card{{ summary.empty ? ' is-flag' }}">
             <h4>{{ "Never filled in"|t('joan') }}</h4>
             <div class="joan-figure">{{ summary.empty|number_format }}</div>
-            <div class="joan-sub">{{ "in a layout, zero values"|t('joan') }}</div>
+            <div class="light smalltext">{{ "in a layout, zero values"|t('joan') }}</div>
         </div>
         <div class="joan-card{{ summary.stranded ? ' is-bad' }}">
             <h4>{{ "Stranded"|t('joan') }}</h4>
             <div class="joan-figure">{{ summary.stranded|number_format }}</div>
-            <div class="joan-sub">{{ "content with nowhere to live"|t('joan') }}</div>
+            <div class="light smalltext">{{ "content with nowhere to live"|t('joan') }}</div>
         </div>
         <div class="joan-card">
             <h4>{{ "Entry types"|t('joan') }}</h4>
             <div class="joan-figure">{{ summary.entryTypes|number_format }}</div>
-            <div class="joan-sub">
+            <div class="light smalltext">
                 {{ "{n} attached to nothing or empty"|t('joan', { n: summary.unusedEntryTypes|number_format }) }}
             </div>
         </div>
         <div class="joan-card">
             <h4>{{ "Field layouts"|t('joan') }}</h4>
             <div class="joan-figure">{{ summary.layouts|number_format }}</div>
-            <div class="joan-sub">
+            <div class="light smalltext">
                 {% if summary.unattributedLayouts %}
                     {{ "{n} nothing claims"|t('joan', { n: summary.unattributedLayouts }) }}
                 {% else %}
@@ -73,7 +73,7 @@
                             <tr>
                                 <td>
                                     <a href="{{ url('joan/fields/' ~ field.uid) }}">{{ field.name }}</a>
-                                    <span class="joan-sub joan-mono">{{ field.handle }}</span>
+                                    <span class="light smalltext code">{{ field.handle }}</span>
                                 </td>
                                 <td>{% include "joan/_partials/verdict" with { verdict: field.verdict } only %}</td>
                             </tr>
@@ -99,7 +99,7 @@
                         <tr>
                             <td>
                                 <a href="{{ url('joan/fields/' ~ field.uid) }}">{{ field.name }}</a>
-                                <span class="joan-sub">{{ field.typeName }}</span>
+                                <span class="light smalltext">{{ field.typeName }}</span>
                             </td>
                             <td class="joan-num">
                                 {{ field.wasCounted() ? field.usedElements|number_format : '—' }}
