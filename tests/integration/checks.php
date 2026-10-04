@@ -15,17 +15,17 @@
  * queue runner.
  */
 
-use craft\db\Query;
 use craft\base\ElementContainerFieldInterface;
 use craft\base\RelationalFieldInterface;
+use craft\db\Query;
 use craft\helpers\FileHelper;
 use justinholtweb\joan\models\CodeReference;
 use justinholtweb\joan\models\EntryTypeReport;
 use justinholtweb\joan\models\FieldReport;
 use justinholtweb\joan\models\LayoutRef;
+use justinholtweb\joan\Plugin;
 use justinholtweb\joan\services\CodeScan;
 use justinholtweb\joan\services\Exports;
-use justinholtweb\joan\Plugin;
 use yii\base\Event;
 
 $root = getenv('CRAFT_BASE_PATH') ?: null;

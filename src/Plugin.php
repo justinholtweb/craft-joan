@@ -110,8 +110,14 @@ class Plugin extends BasePlugin
 
     public function getCpNavItem(): ?array
     {
-        $item = parent::getCpNavItem();
         $user = Craft::$app->getUser();
+
+        // Every screen requires joan:view, so don't offer a nav item that only leads to a 403.
+        if (!$user->checkPermission(self::PERMISSION_VIEW)) {
+            return null;
+        }
+
+        $item = parent::getCpNavItem();
 
         $subnav = [
             'overview' => ['label' => Craft::t('joan', 'Overview'), 'url' => 'joan'],

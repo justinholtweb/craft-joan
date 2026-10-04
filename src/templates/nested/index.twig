@@ -6,12 +6,12 @@
 {% block actionButton %}
     <div class="flex">
         <a class="btn" href="{{ actionUrl('joan/export/download', { report: 'nested', format: 'csv' }) }}">{{ "Export CSV"|t('joan') }}</a>
-        {% include "joan/_partials/refresh" %}
+        {% include "joan/_partials/refresh" with { canRefresh: canRefresh } only %}
     </div>
 {% endblock %}
 
 {% block content %}
-    {% include "joan/_partials/style" %}
+    {% include "joan/_partials/style" only %}
 
     <p class="joan-note">
         {{ "Every field that nests entries — Matrix, and CKEditor when it does. The question worth asking here is which of the block types a field allows anyone has ever actually used."|t('joan') }}
@@ -43,9 +43,9 @@
             <table class="data fullwidth joan-table">
                 <thead>
                     <tr>
-                        <th>{{ "Block type"|t('joan') }}</th>
-                        <th class="joan-num">{{ "Blocks"|t('joan') }}</th>
-                        <th style="width: 30%;">{{ "Share"|t('joan') }}</th>
+                        <th scope="col">{{ "Block type"|t('joan') }}</th>
+                        <th scope="col" class="joan-num">{{ "Blocks"|t('joan') }}</th>
+                        <th scope="col" style="width: 30%;">{{ "Share"|t('joan') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -62,7 +62,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <div class="joan-bar">
+                                <div class="joan-bar" aria-hidden="true">
                                     <span style="width: {{ most.entries > 0 ? (entryType.entries / most.entries * 100)|round : 0 }}%;"></span>
                                 </div>
                             </td>

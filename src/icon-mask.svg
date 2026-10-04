@@ -1,12 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Joan">
     <title>Joan</title>
-    <!-- A stock-taker's clipboard: the board, the clip, and a tally of what's on it —
-         two lines counted, one struck through. -->
-    <rect x="18" y="12" width="64" height="78" rx="7" fill="none" stroke="currentColor" stroke-width="6"/>
-    <path d="M38 12V9a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v3" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-    <rect x="36" y="6" width="28" height="13" rx="4" fill="currentColor"/>
-    <path d="M31 40h16M31 56h30M31 72h22" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-    <path d="M56 34l14 12" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-    <path d="M70 34l-14 12" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+    <!-- The same figure as icon.svg with the plate removed and the figure scaled up to fill the
+         space the plate used to take. currentColor throughout, so the control panel tints it. -->
+    <g fill="currentColor" transform="translate(50 50) scale(1.14) translate(-50 -48.5)">
+        <!-- Hair: a swept-back bouffant, full at the crown, curling under at the jaw. -->
+        <path d="M 43.6 26.5 C 40.2 25.5 38.6 21.5 39.2 17.5 C 39.8 12 44.2 8 50 8 C 55.8 8 60.2 12 60.8 17.5
+                 C 61.4 21.5 59.8 25.5 56.4 26.5 C 55.6 25.6 55.4 23.8 55.4 22 L 44.6 22 C 44.6 23.8 44.4 25.6 43.6 26.5 Z"/>
+        <!-- Face and neck. -->
+        <ellipse cx="50" cy="23" rx="5.8" ry="7"/>
+        <rect x="47.7" y="28" width="4.6" height="7"/>
+        <!-- Sheath dress: shoulders, bust, a cinched waist, hips, pencil skirt. -->
+        <path d="M 44 34 L 56 34 C 60 34.5 64 35.5 66 37.5 C 66.5 41 64.5 44 63.5 46 C 61.5 50 58 52 58 56
+                 C 58 59 63.5 62 64 68 C 64.5 75 62 83 60 89 L 40 89 C 38 83 35.5 75 36 68 C 36.5 62 42 59 42 56
+                 C 42 52 38.5 50 36.5 46 C 35.5 44 33.5 41 34 37.5 C 36 35.5 40 34.5 44 34 Z"/>
+        <!-- Arms akimbo, hands on the waist. -->
+        <path d="M 58 34.3 C 63 34.6 66.5 36 68.5 38.5 C 72 42 75.5 46 77.8 50.5 C 78.8 52.5 77.5 54.2 75.5 55
+                 C 71.5 56.5 66 57.5 60 58.5 L 59.3 55.3 C 64.5 54.3 69 53 72.2 51.6 C 70 47.5 67 44 63.8 42.5 Z"/>
+        <path d="M 42 34.3 C 37 34.6 33.5 36 31.5 38.5 C 28 42 24.5 46 22.2 50.5 C 21.2 52.5 22.5 54.2 24.5 55
+                 C 28.5 56.5 34 57.5 40 58.5 L 40.7 55.3 C 35.5 54.3 31 53 27.8 51.6 C 30 47.5 33 44 36.2 42.5 Z"/>
+    </g>
 </svg>

@@ -29,7 +29,7 @@
         }
     ],
     "support": {
-        "docs": "https://craft-joan.com/docs",
+        "docs": "https://justinholt.com/plugins/craft-joan/docs",
         "source": "https://github.com/justinholtweb/craft-joan",
         "issues": "https://github.com/justinholtweb/craft-joan/issues"
     },
@@ -41,7 +41,8 @@
     "require-dev": {
         "craftcms/ecs": "dev-main",
         "craftcms/phpstan": "dev-main",
-        "phpunit/phpunit": "^10.5"
+        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": "^1.12 || ^2.2"
     },
     "autoload": {
         "psr-4": {
@@ -54,7 +55,10 @@
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit",
+        "phpstan": "phpstan --memory-limit=1G",
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --ansi --fix"
     },
     "config": {
         "allow-plugins": {
@@ -68,7 +72,7 @@
         "handle": "joan",
         "developer": "Justin Holt",
         "developerUrl": "https://justinholt.com",
-        "documentationUrl": "https://craft-joan.com/docs",
+        "documentationUrl": "https://justinholt.com/plugins/craft-joan/docs",
         "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-joan/main/CHANGELOG.md",
         "class": "justinholtweb\\joan\\Plugin"
     }

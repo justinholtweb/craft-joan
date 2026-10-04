@@ -4,12 +4,12 @@
 {% set selectedSubnavItem = 'overview' %}
 
 {% block actionButton %}
-    {% include "joan/_partials/refresh" %}
+    {% include "joan/_partials/refresh" with { canRefresh: canRefresh } only %}
 {% endblock %}
 
 {% block content %}
-    {% include "joan/_partials/style" %}
-    {% include "joan/_partials/scannotes" %}
+    {% include "joan/_partials/style" only %}
+    {% include "joan/_partials/scannotes" with { contentScan: contentScan, codeStats: codeStats } only %}
 
     <div class="joan-cards">
         <div class="joan-card">
@@ -64,8 +64,8 @@
                 <table class="data fullwidth joan-table">
                     <thead>
                         <tr>
-                            <th>{{ "Field"|t('joan') }}</th>
-                            <th>{{ "Verdict"|t('joan') }}</th>
+                            <th scope="col">{{ "Field"|t('joan') }}</th>
+                            <th scope="col">{{ "Verdict"|t('joan') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -90,8 +90,8 @@
             <table class="data fullwidth joan-table">
                 <thead>
                     <tr>
-                        <th>{{ "Field"|t('joan') }}</th>
-                        <th class="joan-num">{{ "Elements"|t('joan') }}</th>
+                        <th scope="col">{{ "Field"|t('joan') }}</th>
+                        <th scope="col" class="joan-num">{{ "Elements"|t('joan') }}</th>
                     </tr>
                 </thead>
                 <tbody>

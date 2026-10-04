@@ -7,11 +7,11 @@
     <table class="data fullwidth joan-table">
         <thead>
             <tr>
-                <th>{{ "Field"|t('joan') }}</th>
-                <th>{{ "Type"|t('joan') }}</th>
-                <th class="joan-num">{{ "Layouts"|t('joan') }}</th>
-                <th class="joan-num">{{ "Elements"|t('joan') }}</th>
-                <th class="joan-num">{{ "Code"|t('joan') }}</th>
+                <th scope="col">{{ "Field"|t('joan') }}</th>
+                <th scope="col">{{ "Type"|t('joan') }}</th>
+                <th scope="col" class="joan-num">{{ "Layouts"|t('joan') }}</th>
+                <th scope="col" class="joan-num">{{ "Elements"|t('joan') }}</th>
+                <th scope="col" class="joan-num">{{ "Code"|t('joan') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -34,14 +34,14 @@
 {% block actionButton %}
     <div class="flex">
         <a class="btn" href="{{ actionUrl('joan/export/download', { report: 'cleanup', format: 'csv' }) }}">{{ "Export CSV"|t('joan') }}</a>
-        {% include "joan/_partials/refresh" %}
+        {% include "joan/_partials/refresh" with { canRefresh: canRefresh } only %}
     </div>
 {% endblock %}
 
 {% block content %}
     {% import _self as tables %}
-    {% include "joan/_partials/style" %}
-    {% include "joan/_partials/scannotes" %}
+    {% include "joan/_partials/style" only %}
+    {% include "joan/_partials/scannotes" with { contentScan: contentScan, codeStats: codeStats } only %}
 
     <p class="joan-note">
         {{ "Joan deletes nothing. Deleting a field deletes its content for every element, permanently, and that decision belongs on Craft’s own settings screen — with this list open next to it. Take a database backup first: {command}."|t('joan', { command: 'php craft db/backup' }) }}
@@ -91,9 +91,9 @@
         <table class="data fullwidth joan-table">
             <thead>
                 <tr>
-                    <th>{{ "Entry type"|t('joan') }}</th>
-                    <th class="joan-num">{{ "Entries"|t('joan') }}</th>
-                    <th>{{ "Why it’s here"|t('joan') }}</th>
+                    <th scope="col">{{ "Entry type"|t('joan') }}</th>
+                    <th scope="col" class="joan-num">{{ "Entries"|t('joan') }}</th>
+                    <th scope="col">{{ "Why it’s here"|t('joan') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -128,8 +128,8 @@
         <table class="data fullwidth joan-table">
             <thead>
                 <tr>
-                    <th>{{ "Field"|t('joan') }}</th>
-                    <th>{{ "Block type"|t('joan') }}</th>
+                    <th scope="col">{{ "Field"|t('joan') }}</th>
+                    <th scope="col">{{ "Block type"|t('joan') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -151,9 +151,9 @@
         <table class="data fullwidth joan-table">
             <thead>
                 <tr>
-                    <th>{{ "Layout"|t('joan') }}</th>
-                    <th>{{ "Declared type"|t('joan') }}</th>
-                    <th class="joan-num">{{ "Fields"|t('joan') }}</th>
+                    <th scope="col">{{ "Layout"|t('joan') }}</th>
+                    <th scope="col">{{ "Declared type"|t('joan') }}</th>
+                    <th scope="col" class="joan-num">{{ "Fields"|t('joan') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -176,8 +176,8 @@
         <table class="data fullwidth joan-table">
             <thead>
                 <tr>
-                    <th>{{ "Content key"|t('joan') }}</th>
-                    <th class="joan-num">{{ "Rows"|t('joan') }}</th>
+                    <th scope="col">{{ "Content key"|t('joan') }}</th>
+                    <th scope="col" class="joan-num">{{ "Rows"|t('joan') }}</th>
                 </tr>
             </thead>
             <tbody>

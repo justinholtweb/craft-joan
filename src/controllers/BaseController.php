@@ -20,6 +20,7 @@ abstract class BaseController extends Controller
             return false;
         }
 
+        $this->requireCpRequest();
         $this->requirePermission(Plugin::PERMISSION_VIEW);
 
         return true;

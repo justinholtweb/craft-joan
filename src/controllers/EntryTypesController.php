@@ -2,6 +2,7 @@
 
 namespace justinholtweb\joan\controllers;
 
+use justinholtweb\joan\models\EntryTypeReport;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -16,7 +17,7 @@ class EntryTypesController extends BaseController
         $verdict = $this->request->getQueryParam('verdict');
 
         if ($verdict !== null && $verdict !== '') {
-            $reports = array_filter($reports, fn($report) => $report->verdict === $verdict);
+            $reports = array_filter($reports, fn(EntryTypeReport $report) => $report->verdict === $verdict);
         }
 
         return $this->renderTemplate('joan/entrytypes/index', $this->withChrome([

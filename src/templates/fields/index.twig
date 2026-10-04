@@ -6,24 +6,24 @@
 {% block actionButton %}
     <div class="flex">
         <a class="btn" href="{{ actionUrl('joan/export/download', { report: 'fields', format: 'csv' }) }}">{{ "Export CSV"|t('joan') }}</a>
-        {% include "joan/_partials/refresh" %}
+        {% include "joan/_partials/refresh" with { canRefresh: canRefresh } only %}
     </div>
 {% endblock %}
 
 {% block content %}
-    {% include "joan/_partials/style" %}
-    {% include "joan/_partials/scannotes" %}
+    {% include "joan/_partials/style" only %}
+    {% include "joan/_partials/scannotes" with { contentScan: contentScan, codeStats: codeStats } only %}
 
     <form method="get" class="joan-filters">
         <div class="field">
-            <div class="heading"><label>{{ "Search"|t('joan') }}</label></div>
-            <div class="input"><input type="text" class="text" name="search" value="{{ search }}" placeholder="{{ 'name, handle or type'|t('joan') }}"></div>
+            <div class="heading"><label for="joan-search">{{ "Search"|t('joan') }}</label></div>
+            <div class="input"><input type="text" class="text" id="joan-search" name="search" value="{{ search }}" placeholder="{{ 'name, handle or type'|t('joan') }}"></div>
         </div>
         <div class="field">
-            <div class="heading"><label>{{ "Verdict"|t('joan') }}</label></div>
+            <div class="heading"><label for="joan-verdict">{{ "Verdict"|t('joan') }}</label></div>
             <div class="input">
                 <div class="select">
-                    <select name="verdict">
+                    <select id="joan-verdict" name="verdict">
                         <option value="">{{ "Any"|t('joan') }}</option>
                         {% for value, label in {
                             inUse: 'In use'|t('joan'),
@@ -40,10 +40,10 @@
             </div>
         </div>
         <div class="field">
-            <div class="heading"><label>{{ "Field type"|t('joan') }}</label></div>
+            <div class="heading"><label for="joan-type">{{ "Field type"|t('joan') }}</label></div>
             <div class="input">
                 <div class="select">
-                    <select name="type">
+                    <select id="joan-type" name="type">
                         <option value="">{{ "Any"|t('joan') }}</option>
                         {% for class, label in types %}
                             <option value="{{ class }}"{{ type == class ? ' selected' }}>{{ label }}</option>
@@ -68,12 +68,12 @@
         <table class="data fullwidth joan-table">
             <thead>
                 <tr>
-                    <th>{{ "Field"|t('joan') }}</th>
-                    <th>{{ "Type"|t('joan') }}</th>
-                    <th class="joan-num">{{ "Layouts"|t('joan') }}</th>
-                    <th class="joan-num">{{ "Elements"|t('joan') }}</th>
-                    <th class="joan-num">{{ "Code"|t('joan') }}</th>
-                    <th>{{ "Verdict"|t('joan') }}</th>
+                    <th scope="col">{{ "Field"|t('joan') }}</th>
+                    <th scope="col">{{ "Type"|t('joan') }}</th>
+                    <th scope="col" class="joan-num">{{ "Layouts"|t('joan') }}</th>
+                    <th scope="col" class="joan-num">{{ "Elements"|t('joan') }}</th>
+                    <th scope="col" class="joan-num">{{ "Code"|t('joan') }}</th>
+                    <th scope="col">{{ "Verdict"|t('joan') }}</th>
                 </tr>
             </thead>
             <tbody>

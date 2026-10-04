@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block content %}
-    {% include "joan/_partials/style" %}
+    {% include "joan/_partials/style" only %}
 
     <div class="joan-cards">
         <div class="joan-card">
@@ -85,11 +85,11 @@
         <table class="data fullwidth joan-table">
             <thead>
                 <tr>
-                    <th>{{ "Layout"|t('joan') }}</th>
-                    <th>{{ "Element type"|t('joan') }}</th>
-                    <th>{{ "Tab"|t('joan') }}</th>
-                    <th>{{ "Handle here"|t('joan') }}</th>
-                    <th>{{ "Notes"|t('joan') }}</th>
+                    <th scope="col">{{ "Layout"|t('joan') }}</th>
+                    <th scope="col">{{ "Element type"|t('joan') }}</th>
+                    <th scope="col">{{ "Tab"|t('joan') }}</th>
+                    <th scope="col">{{ "Handle here"|t('joan') }}</th>
+                    <th scope="col">{{ "Notes"|t('joan') }}</th>
                 </tr>
             </thead>
             <tbody>

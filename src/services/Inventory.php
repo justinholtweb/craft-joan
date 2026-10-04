@@ -5,12 +5,13 @@ namespace justinholtweb\joan\services;
 use Craft;
 use craft\base\ElementContainerFieldInterface;
 use craft\base\FieldInterface;
-use craft\base\RelationalFieldInterface;
 use craft\base\MissingComponentInterface;
+use craft\base\RelationalFieldInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use justinholtweb\joan\events\DefineFieldUsageEvent;
 use justinholtweb\joan\models\ContentScan;
+use justinholtweb\joan\models\EntryTypeReport;
 use justinholtweb\joan\models\FieldInstance;
 use justinholtweb\joan\models\FieldReport;
 use justinholtweb\joan\models\Settings;
@@ -162,7 +163,7 @@ class Inventory extends Component
             'layouts' => count($layouts),
             'unattributedLayouts' => count(Plugin::getInstance()->layouts->unattributed()),
             'entryTypes' => count($entryTypes),
-            'unusedEntryTypes' => count(array_filter($entryTypes, fn($t) => $t->needsAttention())),
+            'unusedEntryTypes' => count(array_filter($entryTypes, fn(EntryTypeReport $t) => $t->needsAttention())),
             'strandedKeys' => count($this->contentScan()->strandedKeys),
             'contentScanned' => $this->contentScan()->ran,
             'codeScanned' => $this->codeStats()['ran'],

@@ -175,15 +175,26 @@ class CodeScan extends Component
     public function roots(): array
     {
         $base = rtrim(Craft::getAlias('@root') ?: dirname(Craft::$app->getPath()->getConfigPath()), '/');
+        $realBase = realpath($base);
         $roots = [];
 
         foreach ($this->settings()->normalizedScanPaths() as $path) {
             $absolute = $this->isAbsolute($path) ? $path : $base . '/' . ltrim($path, '/');
-            $absolute = rtrim($absolute, '/');
+            $absolute = realpath(rtrim($absolute, '/'));
 
-            if (is_dir($absolute)) {
-                $roots[] = $absolute;
+            // Configured paths stay inside the project: snippets from whatever is scanned are
+            // shown in the control panel, so `../` or `/etc` must not reach past the site.
+            // Code elsewhere can still be added deliberately via EVENT_REGISTER_SCAN_PATHS.
+            if ($absolute === false || $realBase === false || !is_dir($absolute)) {
+                continue;
             }
+
+            if ($absolute !== $realBase && !str_starts_with($absolute, $realBase . DIRECTORY_SEPARATOR)) {
+                Craft::warning("Skipping scan path outside the project root: $path", Plugin::LOG_CATEGORY);
+                continue;
+            }
+
+            $roots[] = $absolute;
         }
 
         // Nothing configured resolved to a real directory — fall back to wherever Craft
@@ -230,7 +241,9 @@ class CodeScan extends Component
 
         foreach ($iterator as $file) {
             /** @var SplFileInfo $file */
-            if (!$file->isFile()) {
+            // Symlinks can point anywhere, and dotfiles are where `.env` and its kin live —
+            // neither is ever a template or module worth reading.
+            if ($file->isLink() || !$file->isFile() || str_starts_with($file->getFilename(), '.')) {
                 continue;
             }
 

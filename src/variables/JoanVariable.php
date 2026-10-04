@@ -3,6 +3,7 @@
 namespace justinholtweb\joan\variables;
 
 use justinholtweb\joan\models\EntryTypeReport;
+use justinholtweb\joan\models\FieldInstance;
 use justinholtweb\joan\models\FieldReport;
 use justinholtweb\joan\Plugin;
 
@@ -83,6 +84,6 @@ class JoanVariable
             return [];
         }
 
-        return array_map(fn($instance) => $instance->layout->label, $field->instances);
+        return array_map(fn(FieldInstance $instance) => $instance->layout->label, $field->instances);
     }
 }

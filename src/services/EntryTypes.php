@@ -66,7 +66,7 @@ class EntryTypes extends Component
                 'name' => (string)$entryType->name,
                 'handle' => (string)$entryType->handle,
                 'icon' => $entryType->icon,
-                'color' => $entryType->color?->value ?? null,
+                'color' => $entryType->color?->value,
                 'cpEditUrl' => $this->editUrl($entryType),
                 'hasTitleField' => (bool)$entryType->hasTitleField,
                 'fieldLayoutId' => $entryType->fieldLayoutId,

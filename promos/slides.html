@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<!-- handmade: hand-tuned deck -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Joan — Plugin Store promos</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --charcoal: #151016;
+    --charcoal-light: #221820;
+    --charcoal-lighter: #2e2029;
+    --accent: #AD2324;
+    --accent-light: #E05B4A;
+    --gold: #E8B45C;
+    --off-white: #F4EFEA;
+  }
+
+  html { background: #000; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: var(--off-white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- slide shell ---------------------------------------------------- */
+  .slide {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 85% 15%, rgba(173, 35, 36, 0.28) 0%, transparent 42%),
+      radial-gradient(ellipse at 65% 5%,  rgba(224, 91, 74, 0.13) 0%, transparent 35%),
+      radial-gradient(ellipse at 15% 85%, rgba(232, 180, 92, 0.07) 0%, transparent 40%),
+      radial-gradient(ellipse at 35% 95%, rgba(173, 35, 36, 0.10) 0%, transparent 35%),
+      linear-gradient(135deg, #151016 0%, #1d1218 30%, #21141a 60%, #151016 100%);
+  }
+
+  /* Oversized watermark, echoing the app icon */
+  .slide::after {
+    content: '';
+    position: absolute;
+    top: -22%;
+    left: -24%;
+    width: 1320px;
+    height: 1320px;
+    background: url('assets/watermark.svg') no-repeat center / contain;
+    opacity: 0.02;
+    pointer-events: none;
+  }
+
+  /* Hairline along the top edge */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light), var(--gold), var(--accent));
+    z-index: 5;
+  }
+
+  .inner {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    padding: 118px 130px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ---- type ------------------------------------------------------------ */
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(244, 239, 234, 0.62);
+    margin-bottom: 34px;
+  }
+  .eyebrow .rule {
+    width: 58px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent-light);
+  }
+
+  h1, h2 {
+    font-family: 'Jersey 20', sans-serif;
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: 0.005em;
+  }
+
+  .gradient-text {
+    background: linear-gradient(100deg, #E05B4A 0%, #F07A62 34%, #E8B45C 66%, #D8452F 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .lede {
+    font-size: 34px;
+    line-height: 1.5;
+    color: rgba(244, 239, 234, 0.72);
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+
+  /* ---- cover slide ----------------------------------------------------- */
+  .cover .inner { gap: 90px; }
+  .cover .copy { flex: 1 1 auto; }
+  .cover h1 { font-size: 210px; margin-bottom: 26px; }
+  .cover .tagline {
+    font-family: 'Jersey 20', sans-serif;
+    font-size: 60px;
+    line-height: 1.02;
+    color: var(--off-white);
+    margin-bottom: 40px;
+    max-width: 16ch;
+  }
+  .cover .lede { max-width: 28ch; font-size: 30px; }
+
+  .cover .mark {
+    flex: 0 0 auto;
+    width: 460px;
+    height: 460px;
+    filter: drop-shadow(14px 14px 0 rgba(0, 0, 0, 0.35));
+  }
+  .cover .mark img { width: 100%; height: 100%; display: block; }
+
+  .badges { display: flex; gap: 16px; margin-top: 52px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 26px;
+    font-size: 22px;
+    font-weight: 500;
+    color: rgba(244, 239, 234, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+  }
+  .badge .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent-light);
+  }
+
+  /* ---- the verdict statement ------------------------------------------- */
+  .statement .inner { flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+  .statement .eyebrow { justify-content: center; }
+  .swap { display: flex; flex-direction: column; align-items: center; gap: 22px; margin-top: 8px; }
+  .swap .caption {
+    font-size: 26px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(244, 239, 234, 0.42);
+  }
+  .swap .before {
+    font-size: 72px;
+    color: rgba(244, 239, 234, 0.34);
+    letter-spacing: 0.02em;
+  }
+  .swap .arrow {
+    width: 4px;
+    height: 62px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, rgba(224, 91, 74, 0.15), var(--accent-light));
+    position: relative;
+  }
+  .swap .arrow::after {
+    content: '';
+    position: absolute;
+    left: 50%; bottom: -4px;
+    width: 18px; height: 18px;
+    transform: translateX(-50%) rotate(45deg);
+    border-right: 4px solid var(--accent-light);
+    border-bottom: 4px solid var(--accent-light);
+    border-radius: 2px;
+  }
+  .swap .after {
+    font-size: 132px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  .statement .lede { margin-top: 40px; max-width: 36ch; font-size: 32px; }
+
+  /* ---- feature slides -------------------------------------------------- */
+  .feature .inner { align-items: center; }
+  .feature .copy { width: 780px; flex: 0 0 780px; }
+  .feature h2 { font-size: 108px; margin-bottom: 30px; }
+  .feature .lede { max-width: 22ch; }
+
+  .points {
+    list-style: none;
+    margin-top: 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .points { max-width: 700px; }
+  .points li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 25px;
+    line-height: 1.4;
+    color: rgba(244, 239, 234, 0.6);
+  }
+  .points li > span:last-child { flex: 1 1 auto; }
+  .points li b.mono { font-weight: 400; color: rgba(244, 239, 234, 0.82); }
+  .points li .tick {
+    flex: 0 0 auto;
+    margin-top: 9px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent-light);
+  }
+
+  /* Right-hand panel shared by the verdict, storage and terminal slides */
+  .panel {
+    position: absolute;
+    top: 50%;
+    left: 900px;
+    right: 130px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ---- the six verdicts ------------------------------------------------- */
+  .verdict-row {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 26px 34px;
+    border-radius: 16px;
+    background: rgba(46, 32, 41, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .verdict-row .pill {
+    flex: 0 0 auto;
+    min-width: 232px;
+    text-align: center;
+    padding: 11px 22px;
+    border-radius: 999px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .verdict-row .what { font-size: 25px; line-height: 1.35; color: rgba(244, 239, 234, 0.6); }
+
+  .pill.in-use     { background: rgba(74, 222, 128, 0.14); color: #7FE0A3; }
+  .pill.empty      { background: rgba(232, 180, 92, 0.16); color: var(--gold); }
+  .pill.stranded   { background: rgba(224, 91, 74, 0.18);  color: #F08C7B; }
+  .pill.code-only  { background: rgba(140, 160, 230, 0.16); color: #A7B6EE; }
+  .pill.unused     { background: rgba(173, 35, 36, 0.32);  color: #F0A79E; }
+  .pill.not-counted{ background: rgba(255, 255, 255, 0.08); color: rgba(244, 239, 234, 0.6); }
+
+  /* ---- three storage strategies ----------------------------------------- */
+  .stores { display: flex; flex-direction: column; gap: 20px; }
+  .store {
+    padding: 34px 38px;
+    border-radius: 18px;
+    background: rgba(46, 32, 41, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .store .who { font-size: 31px; font-weight: 600; color: var(--off-white); margin-bottom: 14px; }
+  .store .where {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 27px;
+    color: var(--accent-light);
+    margin-bottom: 12px;
+  }
+  .store .sub { font-size: 24px; line-height: 1.45; color: rgba(244, 239, 234, 0.48); }
+
+  .note {
+    font-size: 24px;
+    line-height: 1.5;
+    color: rgba(244, 239, 234, 0.45);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* ---- terminal --------------------------------------------------------- */
+  .term {
+    position: absolute;
+    top: 50%;
+    left: 900px;
+    right: -110px;
+    transform: translateY(-50%);
+    border-radius: 14px; overflow: hidden; box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.08); }
+  .term .chrome {
+    height: 44px;
+    background: #2a1f28;
+    background-image:
+      radial-gradient(circle at 26px 22px, #ff5f57 6.5px, transparent 7px),
+      radial-gradient(circle at 52px 22px, #ffbd2e 6.5px, transparent 7px),
+      radial-gradient(circle at 78px 22px, #28ca42 6.5px, transparent 7px);
+  }
+  .term .body {
+    background: #150f14;
+    padding: 42px 44px;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 25px;
+    line-height: 2.0;
+  }
+  .term .body i { display: inline-block; width: 17em; font-style: normal; }
+  .slide[data-n="5"] .term .body i { width: 19em; }
+  .slide[data-n="6"] .term .body i { width: 21em; }
+  .term .prompt { color: var(--accent-light); }
+  .term .cmd { color: var(--off-white); }
+  .term .out { color: rgba(244, 239, 234, 0.45); }
+  .term .ok { color: #4ade80; }
+  .term .warn { color: var(--gold); }
+  .term .bad { color: #F08C7B; }
+  .term .blank { display: block; height: 20px; }
+
+  /* ---- footer lockup --------------------------------------------------- */
+  .footer {
+    position: absolute;
+    left: 130px;
+    bottom: 62px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    color: rgba(244, 239, 234, 0.4);
+  }
+  .footer img { width: 40px; height: 40px; border-radius: 9px; }
+  .footer b { color: rgba(244, 239, 234, 0.72); font-weight: 600; }
+
+  /* Only render the requested slide when screenshotting */
+  body.single .slide { display: none; }
+  body.single .slide.active { display: block; }
+
+  /* ---- control-panel screenshot cards -------------------------------
+     Self-contained: these cards must drop into any deck in the family, and the decks
+     do not share a class system. Only --accent and --off-white are relied on, both of
+     which every deck defines, and both have fallbacks. */
+  .slide.cpcard { display: block; }
+  .cpcard .cpc-inner {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    padding: 112px 120px;
+    display: flex;
+    align-items: center;
+    gap: 70px;
+  }
+  .cpcard .cpc-copy { width: 660px; flex: 0 0 660px; }
+
+  .cpcard .cpc-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 34px;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-light, #7aa2c8);
+  }
+  .cpcard .cpc-eyebrow i {
+    display: block;
+    width: 62px;
+    height: 3px;
+    background: var(--accent-light, #7aa2c8);
+    border-radius: 2px;
+  }
+
+  .cpcard .cpc-h2 {
+    font-family: 'Jersey 20', 'Inter', sans-serif;
+    font-size: 88px;
+    line-height: 0.96;
+    font-weight: 400;
+    letter-spacing: 0.005em;
+    margin: 0 0 28px;
+    color: var(--off-white, #f0f0f5);
+  }
+
+  .cpcard .cpc-lede {
+    font-size: 33px;
+    line-height: 1.42;
+    color: rgba(244, 239, 234, 0.66);
+    margin: 0;
+  }
+
+  .cpcard .cpc-points { list-style: none; margin: 40px 0 0; padding: 0; }
+  .cpcard .cpc-points li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 26px;
+    line-height: 1.5;
+    color: rgba(244, 239, 234, 0.72);
+    margin-bottom: 18px;
+  }
+  .cpcard .cpc-points li::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    margin-top: 14px;
+    border-radius: 50%;
+    background: var(--accent-light, #7aa2c8);
+  }
+
+  .cpcard .cpc-panel { flex: 1 1 auto; min-width: 0; }
+
+  .cpcard .cpc-frame {
+    border-radius: 14px;
+    overflow: hidden;
+    background: #e4edf6;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55), 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+  .cpcard .cpc-chrome {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 18px;
+    background: linear-gradient(180deg, #2a1f28 0%, #21181f 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+  }
+  .cpcard .cpc-chrome b { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.16); }
+  .cpcard .cpc-chrome b:nth-child(1) { background: #ff5f57; }
+  .cpcard .cpc-chrome b:nth-child(2) { background: #febc2e; }
+  .cpcard .cpc-chrome b:nth-child(3) { background: #28c840; }
+  .cpcard .cpc-chrome em {
+    margin-left: 12px;
+    font-style: normal;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+    color: rgba(244, 239, 234, 0.45);
+  }
+  .cpcard .cpc-frame img { display: block; width: 100%; height: auto; }
+
+  /* A tall capture is anchored to its top — the interesting rows are always first.
+     The fade makes the cut read as "there is more" rather than as a broken edge. */
+  .cpcard .cpc-frame.cpc-clip { max-height: 620px; position: relative; }
+  .cpcard .cpc-frame.cpc-clip img { object-fit: cover; object-position: top center; max-height: 580px; }
+  .cpcard .cpc-frame.cpc-clip::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 130px;
+    background: linear-gradient(180deg, rgba(228,237,246,0) 0%, rgba(228,237,246,0.92) 78%, #e4edf6 100%);
+  }
+
+  .cpcard .cpc-caption {
+    display: block;
+    margin-top: 20px;
+    font-size: 22px;
+    line-height: 1.45;
+    color: rgba(244, 239, 234, 0.52);
+  }
+  .cpcard .cpc-caption b { color: rgba(244, 239, 234, 0.80); font-weight: 600; }
+
+</style>
+</head>
+<body>
+
+<!-- 1 · Cover ============================================================ -->
+<section class="slide cover" data-n="1">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Craft CMS 5</div>
+      <h1 class="gradient-text">Joan</h1>
+      <p class="tagline">She knows where everything is.</p>
+      <p class="lede">A complete inventory of your content model — every field, entry type and layout, what actually uses it, and what nothing does.</p>
+      <div class="badges">
+        <span class="badge"><span class="dot"></span> Free · one edition</span>
+        <span class="badge">Craft 5.3+ · PHP 8.2+ · MySQL &amp; PostgreSQL</span>
+      </div>
+    </div>
+    <div class="mark"><img src="assets/icon.svg" alt=""></div>
+  </div>
+</section>
+
+<!-- 2 · The question ===================================================== -->
+<section class="slide statement" data-n="2">
+  <div class="inner">
+    <div class="eyebrow"><span class="rule"></span> The whole idea</div>
+    <div class="swap">
+      <span class="caption">Craft tells you</span>
+      <span class="before">&ldquo;1 unknown field layout&rdquo;</span>
+      <span class="arrow"></span>
+      <span class="caption">Joan tells you</span>
+      <span class="after gradient-text">Nothing would miss it</span>
+    </div>
+    <p class="lede">Every field gets a verdict, not a number — because a zero you can&rsquo;t explain
+      is what gets the wrong field deleted.</p>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Joan</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-joan</div>
+</section>
+
+<!-- 3 · The six verdicts ================================================= -->
+<section class="slide feature" data-n="3">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Six answers</div>
+      <h2>A verdict,<br>not a count</h2>
+      <p class="lede">The difference between a field nobody fills in and a field nothing can reach
+        is the difference between a form to fix and a row to delete.</p>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="verdict-row"><span class="pill in-use">In use</span><span class="what">In a layout, and elements hold values.</span></div>
+    <div class="verdict-row"><span class="pill empty">Never filled in</span><span class="what">Offered to editors. Not once given a value.</span></div>
+    <div class="verdict-row"><span class="pill stranded">Stranded</span><span class="what">In no layout — but content rows still carry values.</span></div>
+    <div class="verdict-row"><span class="pill code-only">Code only</span><span class="what">No layout, no content. The codebase still names it.</span></div>
+    <div class="verdict-row"><span class="pill unused">Unused</span><span class="what">Nothing would miss it.</span></div>
+    <div class="verdict-row"><span class="pill not-counted">Not counted</span><span class="what">Stored somewhere Joan can&rsquo;t measure. Never reported as zero.</span></div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Joan</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-joan</div>
+</section>
+
+<!-- 4 · Three kinds of storage =========================================== -->
+<section class="slide feature" data-n="4">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Where the numbers come from</div>
+      <h2>Counted three<br>different ways</h2>
+      <p class="lede">Craft 5 keeps field values in three places. Count one and miss the others and
+        the report is worse than useless.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span>Drafts and revisions excluded by default — fifty revisions per entry would call every abandoned field busy.</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="stores">
+      <div class="store">
+        <div class="who">Most fields</div>
+        <div class="where">elements_sites.content</div>
+        <div class="sub">Keyed by the field layout element&rsquo;s UID. Read once per rebuild and tallied per field.</div>
+      </div>
+      <div class="store">
+        <div class="who">Relational fields</div>
+        <div class="where">relations</div>
+        <div class="sub">Entries, Assets, Categories, Tags, Users. Both tables counted and the larger taken — which matters on a site upgraded from Craft 4 and never resaved.</div>
+      </div>
+      <div class="store">
+        <div class="who">Nested-element fields</div>
+        <div class="where">entries.fieldId</div>
+        <div class="sub">Matrix, and CKEditor when it nests entries. These own entries of their own and store nothing in the content column at all.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Joan</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-joan</div>
+</section>
+
+<!-- 5 · Reads your codebase ============================================== -->
+<section class="slide feature" data-n="5">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Before you delete it</div>
+      <h2>It reads your<br>codebase too</h2>
+      <p class="lede">A field can be in no layout and hold no content and still be referenced — by a
+        template that populates it on save, by a module, by a migration.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span>Every hit classified: <b class="mono">entry.myField</b> is worth more than the word in a comment.</span></li>
+        <li><span class="tick"></span><span>File, line number and the source line, so &ldquo;safe to delete&rdquo; means something.</span></li>
+        <li><span class="tick"></span><span>Every handle a field answers to — including the ones a field layout renamed.</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="term">
+    <div class="chrome"></div>
+    <div class="body">
+      <div><span class="prompt">$</span> <span class="cmd">php craft joan/fields/show heroImage</span></div>
+      <span class="blank"></span>
+      <div><i class="out">Verdict</i><span class="bad">stranded</span></div>
+      <div><i class="out">Layouts</i><span class="out">none</span></div>
+      <div><i class="out">Content</i><span class="warn">318 elements</span></div>
+      <span class="blank"></span>
+      <div><i class="out">templates/news/_entry.twig:9</i><span class="ok">property</span></div>
+      <div><i class="out">modules/Importer.php:214</i><span class="ok">property</span></div>
+      <div><i class="out">templates/_macros.twig:31</i><span class="out">bare handle</span></div>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Joan</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-joan</div>
+</section>
+
+<!-- 6 · It deletes nothing =============================================== -->
+<section class="slide feature" data-n="6">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> What it won&rsquo;t do</div>
+      <h2>It installs<br>nothing. It<br>deletes nothing.</h2>
+      <p class="lede">No tables, no writes, no migration to undo. Every screen is a question asked of
+        what is already there.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span>Deleting a field destroys its content for every element, permanently — that decision belongs on Craft&rsquo;s own settings screen.</span></li>
+        <li><span class="tick"></span><span>With Joan&rsquo;s cleanup list open next to it.</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="term">
+    <div class="chrome"></div>
+    <div class="body">
+      <div><span class="prompt">$</span> <span class="cmd">php craft joan/unused --fail-on=stranded</span></div>
+      <span class="blank"></span>
+      <div><i class="out">Fields nothing uses</i><span class="cmd">11</span></div>
+      <div><i class="out">Fields nobody fills in</i><span class="cmd">24</span></div>
+      <div><i class="out">Content with nowhere to live</i><span class="bad">3</span></div>
+      <span class="blank"></span>
+      <div><span class="bad">Failed: stranded content found.</span></div>
+      <div><span class="out">exit 1</span></div>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Joan</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-joan</div>
+</section>
+
+<!-- 7 · control-panel screenshot ========================================= -->
+<section class="slide cpcard" data-n="7">
+  <div class="cpc-inner">
+    <div class="cpc-copy">
+      <div class="cpc-eyebrow"><i></i> In the control panel</div>
+      <h2 class="cpc-h2">The size of it,<br>on one screen</h2>
+      <p class="cpc-lede">How much content model you have, and how much of it nothing is using.</p>
+    </div>
+    <div class="cpc-panel">
+      <figure class="cpc-frame">
+        <div class="cpc-chrome"><b></b><b></b><b></b><em>Joan overview</em></div>
+        <img src="shots/joan-overview.png" alt="">
+      </figure>
+      <span class="cpc-caption">Joan&rsquo;s Overview screen in the Craft control panel, counting fields, unused fields, never-filled-in fields, stranded content, entry types and field layouts</span>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Joan</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-joan</div>
+</section>
+
+<!-- 8 · control-panel screenshot ========================================= -->
+<section class="slide cpcard" data-n="8">
+  <div class="cpc-inner">
+    <div class="cpc-copy">
+      <div class="cpc-eyebrow"><i></i> In the control panel</div>
+      <h2 class="cpc-h2">Every field,<br>and its verdict</h2>
+      <p class="cpc-lede">Layouts, elements holding a value, lines of code naming it — and what that adds up to.</p>
+    </div>
+    <div class="cpc-panel">
+      <figure class="cpc-frame cpc-clip">
+        <div class="cpc-chrome"><b></b><b></b><b></b><em>Joan fields</em></div>
+        <img src="shots/joan-fields.png" alt="">
+      </figure>
+      <span class="cpc-caption">Joan&rsquo;s Fields screen listing every custom field with its type, layout count, element count, code references and verdict, filterable by verdict and field type</span>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Joan</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-joan</div>
+</section>
+
+<!-- 9 · control-panel screenshot ========================================= -->
+<section class="slide cpcard" data-n="9">
+  <div class="cpc-inner">
+    <div class="cpc-copy">
+      <div class="cpc-eyebrow"><i></i> In the control panel</div>
+      <h2 class="cpc-h2">The evidence,<br>not the verdict</h2>
+      <p class="cpc-lede">Where it&rsquo;s used, what&rsquo;s in it, and every line of your code that names it.</p>
+    </div>
+    <div class="cpc-panel">
+      <figure class="cpc-frame cpc-clip">
+        <div class="cpc-chrome"><b></b><b></b><b></b><em>Joan field detail</em></div>
+        <img src="shots/joan-field.png" alt="">
+      </figure>
+      <span class="cpc-caption">A single field&rsquo;s page in Joan, showing its verdict, the field layouts it appears in, element counts by type and site, and the template lines that reference its handle</span>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Joan</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-joan</div>
+</section>
+
+<script>
+  var n = new URLSearchParams(location.search).get('s');
+  if (n) {
+    document.body.classList.add('single');
+    var el = document.querySelector('.slide[data-n="' + n + '"]');
+    if (el) el.classList.add('active');
+  }
+</script>
+</body>
+</html>

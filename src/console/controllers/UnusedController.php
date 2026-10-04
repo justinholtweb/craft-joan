@@ -6,6 +6,7 @@ use craft\console\Controller;
 use craft\helpers\Console;
 use justinholtweb\joan\models\EntryTypeReport;
 use justinholtweb\joan\models\FieldReport;
+use justinholtweb\joan\models\LayoutRef;
 use justinholtweb\joan\Plugin;
 use yii\console\ExitCode;
 
@@ -99,7 +100,7 @@ class UnusedController extends Controller
         $this->section('Block types a field allows but nothing uses', $unusedBlockTypes, Console::FG_YELLOW);
 
         $this->section('Field layouts nothing claims', array_map(
-            fn($layout) => sprintf('#%s (%s), %s field(s)', $layout->id, $layout->typeName ?? 'unknown type', $layout->fieldCount),
+            fn(LayoutRef $layout) => sprintf('#%s (%s), %s field(s)', $layout->id, $layout->typeName ?? 'unknown type', $layout->fieldCount),
             $plugin->layouts->unattributed(),
         ), Console::FG_YELLOW);
 

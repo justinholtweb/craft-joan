@@ -19,7 +19,9 @@ class SettingsController extends BaseController
             return false;
         }
 
-        $this->requireAdmin();
+        // false: with allowAdminChanges off, admins still get the read-only screen.
+        // actionSave() keeps the strict check.
+        $this->requireAdmin(false);
 
         return true;
     }

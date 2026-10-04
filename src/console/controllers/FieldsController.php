@@ -104,7 +104,7 @@ class FieldsController extends Controller
         $field = $plugin->inventory->getByHandle($handle);
 
         if ($field === null) {
-            $this->stderr("No field with the handle “$handle”.\n", Console::FG_RED);
+            $this->stderr("No field with the handle “{$handle}”.\n", Console::FG_RED);
 
             return ExitCode::DATAERR;
         }

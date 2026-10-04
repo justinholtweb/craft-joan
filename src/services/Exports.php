@@ -3,11 +3,7 @@
 namespace justinholtweb\joan\services;
 
 use craft\helpers\Json;
-use justinholtweb\joan\models\EntryTypeReport;
 use justinholtweb\joan\models\FieldInstance;
-use justinholtweb\joan\models\FieldReport;
-use justinholtweb\joan\models\LayoutRef;
-use justinholtweb\joan\models\NestedFieldReport;
 use justinholtweb\joan\Plugin;
 use yii\base\Component;
 use yii\base\InvalidArgumentException;
@@ -339,7 +335,7 @@ class Exports extends Component
 
         foreach ($rows as $row) {
             fputcsv($handle, array_map(
-                fn(mixed $value) => is_bool($value) ? ($value ? 'yes' : 'no') : (string)($value ?? ''),
+                fn(mixed $value) => is_bool($value) ? ($value ? 'yes' : 'no') : $this->csvCell((string)($value ?? '')),
                 $row,
             ), escape: '');
         }
@@ -349,5 +345,14 @@ class Exports extends Component
         fclose($handle);
 
         return $csv;
+    }
+
+    /**
+     * Neutralises a cell a spreadsheet would run as a formula. Field and layout names are
+     * free text, and this file is opened in Excel by whoever does the cleanup.
+     */
+    private function csvCell(string $value): string
+    {
+        return preg_match('/^[=+\-@\t\r]/', $value) ? "'" . $value : $value;
     }
 }

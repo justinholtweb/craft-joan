@@ -6,12 +6,12 @@
 {% block actionButton %}
     <div class="flex">
         <a class="btn" href="{{ actionUrl('joan/export/download', { report: 'entry-types', format: 'csv' }) }}">{{ "Export CSV"|t('joan') }}</a>
-        {% include "joan/_partials/refresh" %}
+        {% include "joan/_partials/refresh" with { canRefresh: canRefresh } only %}
     </div>
 {% endblock %}
 
 {% block content %}
-    {% include "joan/_partials/style" %}
+    {% include "joan/_partials/style" only %}
 
     <p class="joan-note">
         {{ "Craft 5 turned Matrix block types into entry types, so this list covers both. An entry type with nothing in the “Used by” column is attached to no section and nested in no field."|t('joan') }}
@@ -19,10 +19,10 @@
 
     <form method="get" class="joan-filters">
         <div class="field">
-            <div class="heading"><label>{{ "Verdict"|t('joan') }}</label></div>
+            <div class="heading"><label for="joan-verdict">{{ "Verdict"|t('joan') }}</label></div>
             <div class="input">
                 <div class="select">
-                    <select name="verdict" onchange="this.form.submit()">
+                    <select id="joan-verdict" name="verdict" onchange="this.form.submit()">
                         <option value="">{{ "Any"|t('joan') }}</option>
                         {% for value, label in {
                             inUse: 'In use'|t('joan'),
@@ -43,11 +43,11 @@
     <table class="data fullwidth joan-table">
         <thead>
             <tr>
-                <th>{{ "Entry type"|t('joan') }}</th>
-                <th>{{ "Used by"|t('joan') }}</th>
-                <th class="joan-num">{{ "Fields"|t('joan') }}</th>
-                <th class="joan-num">{{ "Entries"|t('joan') }}</th>
-                <th>{{ "Verdict"|t('joan') }}</th>
+                <th scope="col">{{ "Entry type"|t('joan') }}</th>
+                <th scope="col">{{ "Used by"|t('joan') }}</th>
+                <th scope="col" class="joan-num">{{ "Fields"|t('joan') }}</th>
+                <th scope="col" class="joan-num">{{ "Entries"|t('joan') }}</th>
+                <th scope="col">{{ "Verdict"|t('joan') }}</th>
             </tr>
         </thead>
         <tbody>

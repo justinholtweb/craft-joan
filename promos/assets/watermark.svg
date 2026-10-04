@@ -1,11 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Joan">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#ffffff">
     <title>Joan</title>
-    <!-- Joan Holloway, hands on hips, drawn the same way in both files: icon.svg puts her in
-         white on the plate, icon-mask.svg drops the plate, scales her up to fill it and
-         switches to currentColor so the control panel can tint the silhouette. Keep the two in
-         step — they are one drawing, not two. -->
-    <rect width="100" height="100" rx="22.44" fill="#AD2324"/>
-    <g fill="#FEFEFE">
+    <!-- The silhouette alone, from src/icon.svg. The tile is stripped on purpose: at watermark
+         scale its rounded edge reads as a hard-edged box across the slide. -->
         <!-- Hair: a swept-back bouffant, full at the crown, curling under at the jaw. -->
         <path d="M 43.6 26.5 C 40.2 25.5 38.6 21.5 39.2 17.5 C 39.8 12 44.2 8 50 8 C 55.8 8 60.2 12 60.8 17.5
                  C 61.4 21.5 59.8 25.5 56.4 26.5 C 55.6 25.6 55.4 23.8 55.4 22 L 44.6 22 C 44.6 23.8 44.4 25.6 43.6 26.5 Z"/>
@@ -21,5 +17,4 @@
                  C 71.5 56.5 66 57.5 60 58.5 L 59.3 55.3 C 64.5 54.3 69 53 72.2 51.6 C 70 47.5 67 44 63.8 42.5 Z"/>
         <path d="M 42 34.3 C 37 34.6 33.5 36 31.5 38.5 C 28 42 24.5 46 22.2 50.5 C 21.2 52.5 22.5 54.2 24.5 55
                  C 28.5 56.5 34 57.5 40 58.5 L 40.7 55.3 C 35.5 54.3 31 53 27.8 51.6 C 30 47.5 33 44 36.2 42.5 Z"/>
-    </g>
 </svg>

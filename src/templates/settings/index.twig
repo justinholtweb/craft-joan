@@ -6,7 +6,7 @@
 {% set fullPageForm = not readOnly %}
 
 {% block content %}
-    {% include "joan/_partials/style" %}
+    {% include "joan/_partials/style" only %}
 
     {% if readOnly %}
         <p class="joan-note is-warning">
@@ -67,6 +67,7 @@
         instructions: "One per line, relative to the project root (or absolute). Missing directories are skipped."|t('joan'),
         id: 'scanPaths',
         name: 'settings[scanPaths]',
+        errors: settings.getErrors('scanPaths'),
         value: settings.scanPaths|join("\n"),
         rows: 4,
         class: 'code',
@@ -86,6 +87,7 @@
         instructions: "One per line, without the dot."|t('joan'),
         id: 'scanExtensions',
         name: 'settings[scanExtensions]',
+        errors: settings.getErrors('scanExtensions'),
         value: settings.scanExtensions|join("\n"),
         rows: 4,
         class: 'code',
@@ -97,6 +99,7 @@
         instructions: "Directory names never descended into, at any depth."|t('joan'),
         id: 'scanExclude',
         name: 'settings[scanExclude]',
+        errors: settings.getErrors('scanExclude'),
         value: settings.scanExclude|join("\n"),
         rows: 4,
         class: 'code',
@@ -107,6 +110,7 @@
         label: "Largest file to read (KB)"|t('joan'),
         id: 'maxFileSize',
         name: 'settings[maxFileSize]',
+        errors: settings.getErrors('maxFileSize'),
         value: settings.maxFileSize,
         size: 8,
         type: 'number',
@@ -118,6 +122,7 @@
         instructions: "0 for no limit."|t('joan'),
         id: 'maxFiles',
         name: 'settings[maxFiles]',
+        errors: settings.getErrors('maxFiles'),
         value: settings.maxFiles,
         size: 8,
         type: 'number',
@@ -129,6 +134,7 @@
         instructions: "The count is always exact; this caps the list Joan shows."|t('joan'),
         id: 'maxRefsPerField',
         name: 'settings[maxRefsPerField]',
+        errors: settings.getErrors('maxRefsPerField'),
         value: settings.maxRefsPerField,
         size: 8,
         type: 'number',
@@ -144,6 +150,7 @@
         instructions: "One handle per line. For the field only ever populated by an import script, which every signal Joan has would otherwise call abandoned."|t('joan'),
         id: 'ignoredFields',
         name: 'settings[ignoredFields]',
+        errors: settings.getErrors('ignoredFields'),
         value: settings.ignoredFields|join("\n"),
         rows: 4,
         class: 'code',
@@ -155,6 +162,7 @@
         instructions: "Any change to a field or a field layout invalidates the inventory immediately regardless of this — Joan keys its cache on Craft’s own field version. The timer is only there to catch up with *content* changes, which don’t move it."|t('joan'),
         id: 'cacheDuration',
         name: 'settings[cacheDuration]',
+        errors: settings.getErrors('cacheDuration'),
         value: settings.cacheDuration,
         size: 8,
         type: 'number',
@@ -165,12 +173,13 @@
         label: "Log level"|t('joan'),
         id: 'logLevel',
         name: 'settings[logLevel]',
+        errors: settings.getErrors('logLevel'),
         value: settings.logLevel,
         options: [
-            { label: 'Error', value: 'error' },
-            { label: 'Warning', value: 'warning' },
-            { label: 'Info', value: 'info' },
-            { label: 'Debug', value: 'debug' },
+            { label: 'Error'|t('joan'), value: 'error' },
+            { label: 'Warning'|t('joan'), value: 'warning' },
+            { label: 'Info'|t('joan'), value: 'info' },
+            { label: 'Debug'|t('joan'), value: 'debug' },
         ],
         disabled: readOnly,
     }) }}

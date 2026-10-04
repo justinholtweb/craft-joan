@@ -100,8 +100,10 @@ class Settings extends Model
         // model, which blocks saving any setting at all — including on a fresh install.
         return [
             [['countContent', 'includeDrafts', 'scanCode', 'includePluginContexts'], 'boolean'],
-            [['maxFileSize', 'maxRefsPerField'], 'integer', 'min' => 1],
-            [['maxFiles', 'cacheDuration'], 'integer', 'min' => 0],
+            [['maxFileSize'], 'integer', 'min' => 1, 'max' => 4096],
+            [['maxRefsPerField'], 'integer', 'min' => 1],
+            [['maxFiles'], 'integer', 'min' => 0, 'max' => 100000],
+            [['cacheDuration'], 'integer', 'min' => 0],
             [['logLevel'], 'in', 'range' => ['error', 'warning', 'info', 'debug']],
             [['scanPaths', 'scanExtensions', 'scanExclude', 'ignoredFields'], 'each', 'rule' => ['string']],
         ];

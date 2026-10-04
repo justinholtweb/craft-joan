@@ -271,8 +271,13 @@ class Layouts extends Component
 
         // No element type claimed it. If the layout's type is a class we can load, it's a
         // layout on something that isn't an element — Hyper's link types are the usual
-        // case, and fields in them are absolutely in use.
-        if ($layout->type !== null && class_exists($layout->type)) {
+        // case, and fields in them are absolutely in use. A registered element type doesn't
+        // count: its unclaimed layout is an orphan (a deleted category group, say), not this.
+        if (
+            $layout->type !== null &&
+            class_exists($layout->type) &&
+            !in_array($layout->type, $this->elementTypes(), true)
+        ) {
             $ref->kind = LayoutRef::KIND_OTHER;
             $ref->isElementLayout = false;
             $ref->typeName = $this->displayName($layout->type);
@@ -413,7 +418,7 @@ class Layouts extends Component
     {
         $name = $this->displayName($class);
         $parts = explode('\\', $class);
-        $vendor = $parts[0] ?? '';
+        $vendor = $parts[0];
 
         if ($vendor !== '' && $vendor !== 'craft') {
             return sprintf('%s — %s', ucfirst($vendor), $name);
